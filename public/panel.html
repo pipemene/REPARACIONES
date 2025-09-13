@@ -110,16 +110,188 @@ function getSession(){
 const sess = getSession();
 const who = document.getElementById('who');
 const tabs = document.getElementById('prettyTabs');
+const errBox = document.getElementById('err');
+
+function logout(){ try{ sessionStorage.removeItem('session'); }catch(e){} location.href = '/'; }
+function showEl(idEl, show=true){ const el=document.getElementById(idEl); if(el) el.classList.toggle('hidden', !show); }
+function setWho(s){ if(!s){ who.textContent=''; return; } who.innerHTML = '<span class="badge">'+s.usuario+'</span> · <span class="badge">'+s.rol+'</span>'; }
+
 function prettyBtn(id,label,active=false){
   const b=document.createElement('div');
   b.className='nav-item'+(active?' active':'');
+  b.dataset.target = id;
   b.onclick=()=>activateTab(id);
   const dot=document.createElement('span'); dot.className='nav-icon';
   const text=document.createElement('span'); text.textContent=label;
   b.appendChild(dot); b.appendChild(text);
   return b;
 }
-setup().catch(err=>{ errBox.style.display='block'; errBox.textContent='Error en panel: '+err.message; });
+
+function activateTab(id){
+  const sections = ['tab-usuarios','tab-ordenes'];
+  sections.forEach(s=>{ const el=document.getElementById(s); if(el) el.classList.add('hidden'); });
+  const target = document.getElementById(id);
+  if(target){ target.classList.remove('hidden'); }
+  // set active class on nav items
+  Array.from(tabs.querySelectorAll('.nav-item')).forEach(n => {
+    if(n.dataset.target === id) n.classList.add('active'); else n.classList.remove('active');
+  });
+}
+
+// ---- API helpers ----
+async function listUsers(){
+  const out = document.getElementById('usersOut');
+  if(!out) return;
+  out.innerHTML = '<p class="badge">Cargando usuarios...</p>';
+  try{
+    const r = await fetch('/api/usuarios', { cache: 'no-store' });
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    const j = await r.json();
+    if(!Array.isArray(j) || j.length===0){
+      out.innerHTML = '<div class="notice">⚠️ No hay usuarios registrados.</div>';
+      return;
+    }
+    const rows = j.map(u => `<tr><td>${u.id}</td><td>${u.usuario}</td><td>${u.rol}</td></tr>`).join('');
+    out.innerHTML = `<table><thead><tr><th>ID</th><th>Usuario</th><th>Rol</th></tr></thead><tbody>${rows}</tbody></table>`;
+  }catch(err){
+    out.innerHTML = `<div class="notice">❌ Error cargando usuarios: ${err.message}</div>`;
+  }
+}
+
+// Usuarios CRUD
+async function createUser(){
+  const usuario = document.getElementById('uUsuario').value;
+  const password = document.getElementById('uPass').value;
+  const rol = document.getElementById('uRol').value;
+  const out = document.getElementById('usersOut');
+  try{
+    const r = await fetch('/api/usuarios',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({usuario,password,rol})});
+    const j = await r.json(); out.innerHTML = '<pre>'+JSON.stringify(j,null,2)+'</pre>'; await listUsers();
+  }catch(e){ out.innerHTML = `<div class="notice">❌ ${e.message}</div>`; }
+}
+async function editUser(){
+  const idEdit = document.getElementById('uIdEdit').value;
+  const password = document.getElementById('uPassEdit').value;
+  const rol = document.getElementById('uRolEdit').value || undefined;
+  const body = {}; if(password) body.password = password; if(rol) body.rol = rol;
+  const out = document.getElementById('usersOut');
+  try{
+    const r = await fetch('/api/usuarios/'+idEdit,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const j = await r.json(); out.innerHTML = '<pre>'+JSON.stringify(j,null,2)+'</pre>'; await listUsers();
+  }catch(e){ out.innerHTML = `<div class="notice">❌ ${e.message}</div>`; }
+}
+async function delUser(){
+  const idDel = document.getElementById('uIdDel').value;
+  const out = document.getElementById('usersOut');
+  try{
+    const r = await fetch('/api/usuarios/'+idDel,{method:'DELETE'});
+    const j = await r.json(); out.innerHTML = '<pre>'+JSON.stringify(j,null,2)+'</pre>'; await listUsers();
+  }catch(e){ out.innerHTML = `<div class="notice">❌ ${e.message}</div>`; }
+}
+
+// Órdenes admin
+async function listOrdenes(){ const r=await fetch('/api/ordenes'); const j=await r.json(); document.getElementById('ordenesOut').textContent = JSON.stringify(j,null,2); }
+async function crearOrden(){
+  const codigoInmueble = document.getElementById('oCodigo').value;
+  const nombre = document.getElementById('oNombre').value;
+  const telefono = document.getElementById('oTel').value;
+  const descripcion = document.getElementById('oDesc').value;
+  const r = await fetch('/api/ordenes',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({codigoInmueble,nombre,telefono,descripcion})});
+  const j = await r.json(); document.getElementById('ordenesOut').textContent = JSON.stringify(j,null,2);
+}
+async function asignar(){
+  const oid = document.getElementById('asigId').value;
+  const tecnicoId = parseInt(document.getElementById('asigTec').value);
+  const r = await fetch('/api/ordenes/'+oid+'/asignar',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({tecnicoId,usuario:sess.usuario})});
+  const j = await r.json(); document.getElementById('ordenesOut').textContent = JSON.stringify(j,null,2);
+}
+
+// Técnico
+async function listarMisOrdenes(){
+  const r = await fetch('/api/ordenes?mine=1&tecnicoId='+sess.id);
+  const j = await r.json();
+  document.getElementById('ordenesOut').textContent = JSON.stringify(j,null,2);
+}
+async function tomar(){
+  const oid = document.getElementById('tomarId').value;
+  const r = await fetch('/api/ordenes/'+oid+'/tomar',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({tecnicoId:sess.id, usuario:sess.usuario})});
+  const j = await r.json(); document.getElementById('ordenesOut').textContent = JSON.stringify(j,null,2);
+}
+async function cambiarEstado(){
+  const oid = document.getElementById('estadoId').value;
+  const estado = document.getElementById('estadoNew').value;
+  const r = await fetch('/api/ordenes/'+oid,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({estado,usuario:sess.usuario})});
+  const j = await r.json(); document.getElementById('ordenesOut').textContent = JSON.stringify(j,null,2);
+}
+async function subirEvidencia(){
+  const oid = document.getElementById('eviId').value;
+  const f = document.getElementById('eviFile').files[0];
+  if(!f){ alert('Selecciona archivo'); return; }
+  const fd = new FormData(); fd.append('evidencia', f); fd.append('usuario', sess.usuario);
+  const r = await fetch('/api/ordenes/'+oid+'/evidencia',{ method:'POST', body: fd });
+  const j = await r.json(); document.getElementById('ordenesOut').textContent = JSON.stringify(j,null,2);
+}
+
+// Firma
+window.addEventListener('DOMContentLoaded', ()=>{
+  const c = document.getElementById('sig'); if(!c) return;
+  const ctx = c.getContext('2d');
+  let drawing=false, prev=null;
+  c.addEventListener('pointerdown', e=>{ drawing=true; prev={x:e.offsetX,y:e.offsetY}; });
+  c.addEventListener('pointermove', e=>{
+    if(!drawing) return;
+    ctx.lineWidth = 2; ctx.lineCap='round';
+    ctx.beginPath(); ctx.moveTo(prev.x, prev.y); ctx.lineTo(e.offsetX, e.offsetY); ctx.stroke();
+    prev={x:e.offsetX,y:e.offsetY};
+  });
+  c.addEventListener('pointerup', ()=>drawing=false);
+  window.limpiarFirma = ()=>ctx.clearRect(0,0,c.width,c.height);
+  window.enviarFirma = async ()=>{
+    const oid = document.getElementById('sigId').value;
+    const data = c.toDataURL('image/png');
+    const r = await fetch('/api/ordenes/'+oid,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({firma:data,usuario:sess.usuario})});
+    const j = await r.json(); document.getElementById('ordenesOut').textContent = JSON.stringify(j,null,2);
+  };
+});
+
+async function setup(){
+  try{
+    if(!sess){ errBox.style.display='block'; errBox.textContent='Sesión no encontrada. Vuelve a iniciar sesión.'; return; }
+    setWho(sess);
+    tabs.innerHTML=''; tabs.style.display='flex';
+    if(sess.rol==='superadmin'){
+      tabs.appendChild(prettyBtn('tab-usuarios','Usuarios', true));
+      tabs.appendChild(prettyBtn('tab-ordenes','Órdenes'));
+      showEl('tab-usuarios', true);
+      // cargar roles
+      try{
+        const rroles = await fetch('/api/usuarios/roles'); const roles = await rroles.json();
+        document.getElementById('uRol').innerHTML = roles.map(r=>`<option>${r}</option>`).join('');
+        document.getElementById('uRolEdit').innerHTML += roles.map(r=>`<option>${r}</option>`).join('');
+      }catch(e){ /* no crítico */ }
+      await listUsers();
+      activateTab('tab-usuarios');
+    } else if(sess.rol==='admin'){
+      tabs.appendChild(prettyBtn('tab-ordenes','Órdenes', true));
+      showEl('tab-ordenes', true);
+      showEl('ordenesAdminControls', true);
+      showEl('asignControls', true);
+      activateTab('tab-ordenes');
+    } else {
+      tabs.appendChild(prettyBtn('tab-ordenes','Mis Órdenes', true));
+      showEl('tab-ordenes', true);
+      showEl('tecControls', true);
+      showEl('firmaTitulo', true);
+      showEl('sig', true);
+      showEl('firmaControls', true);
+      activateTab('tab-ordenes');
+    }
+  }catch(err){
+    errBox.style.display='block'; errBox.textContent='Error en panel: '+err.message;
+  }
+}
+
+setup();
 </script>
 </body>
 </html>
