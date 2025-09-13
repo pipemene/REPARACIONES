@@ -44,7 +44,7 @@ function registrarHistorial(orden, usuario, accion){
 // Seed: usuarios pedidos
 if(!usuarios.length){
   usuarios.push(
-    { id:1, usuario:'PIPEMENE', password:'Blu3h0m32016', rol:'superadmin' },
+    { id:1, usuario:'PIPEMENE', password:'Blu3h0m32016#', rol:'superadmin' },
     { id:2, usuario:'ARRENDAMIENTOS', password:'Bluehome2016', rol:'admin' },
     { id:3, usuario:'TECNICO1', password:'1234', rol:'tecnico' }
   );
