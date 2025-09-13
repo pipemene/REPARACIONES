@@ -61,22 +61,13 @@
         <input id="pdfId" placeholder="ID orden" />
         <button onclick="descargarPDF()">Descargar PDF</button>
       </div>
-      <div class="row" id="tecControls" class="hidden">
-        <button onclick="listarMisOrdenes()">Listar mis órdenes</button>
-        <input id="tomarId" placeholder="ID orden" />
-        <button onclick="tomar()">Tomar orden</button>
-        <input id="estadoId" placeholder="ID orden" />
-        <select id="estadoNew">
-          <option value="pendiente">pendiente</option>
-          <option value="en_proceso">en_proceso</option>
-          <option value="finalizada">finalizada</option>
-        </select>
-        <button onclick="cambiarEstado()">Cambiar estado</button>
-        <input id="eviId" placeholder="ID orden" />
-        <input id="eviFile" type="file" />
-        <button onclick="subirEvidencia()">Subir evidencia</button>
+      <div class="row" id="tecControls">
+        <select id="selMyOrder" title="Mis órdenes"></select>
+        <button class="btn-ghost" onclick="loadTechSelects()">Actualizar</button>
+        <select id="selUnassigned" title="Órdenes sin asignar"></select>
+        <button class="btn-primary" onclick="tomarSel()">Tomar orden</button>
       </div>
-      <h4 id="firmaTitulo" class="hidden">Firma del inquilino</h4>
+      <h4 id="firmaTitulo" class="">Firma del inquilino</h4>
       <canvas id="sig" width="320" height="160" class="hidden"></canvas>
       <div class="row hidden" id="firmaControls">
         <input id="sigId" placeholder="ID orden" />
@@ -220,6 +211,86 @@ function descargarPDFSel(){
   window.open('/api/ordenes/'+oid+'/pdf','_blank');
 }
 
+
+// --- Admin helpers (v9.1): populate technician select ---
+async function loadTecnicosSelect(){
+  const sel = document.getElementById('selTec'); if(!sel) return;
+  sel.innerHTML = '<option value="">-- Selecciona un técnico --</option>';
+  try{
+    const r = await fetch('/api/usuarios', { cache:'no-store' });
+    const j = await r.json();
+    (Array.isArray(j)? j: []).filter(u=>u.rol==='tecnico').forEach(u=>{
+      const opt = document.createElement('option');
+      opt.value = u.id; opt.textContent = u.usuario;
+      sel.appendChild(opt);
+    });
+  }catch(e){ /* ignore */ }
+}
+
+// --- Tech helpers: load selects ---
+async function loadTechSelects(){
+  // Mis órdenes
+  const mySel = document.getElementById('selMyOrder'); if(mySel){ 
+    mySel.innerHTML = '<option value="">-- Mis órdenes --</option>';
+    try{
+      const r = await fetch('/api/ordenes?mine=1&tecnicoId='+sess.id, { cache:'no-store' });
+      const j = await r.json();
+      (Array.isArray(j)? j: []).forEach(o=>{
+        const opt=document.createElement('option'); 
+        opt.value=o.id; opt.textContent=`#${o.id} · ${o.codigoInmueble||'-'} · ${o.nombre||''}`;
+        mySel.appendChild(opt);
+      });
+    }catch(e){}
+  }
+  // Sin asignar
+  const unSel = document.getElementById('selUnassigned'); if(unSel){
+    unSel.innerHTML = '<option value="">-- Sin asignar --</option>';
+    try{
+      const r2 = await fetch('/api/ordenes', { cache:'no-store' });
+      const all = await r2.json();
+      (Array.isArray(all)? all: []).filter(o=>!o.tecnicoId).forEach(o=>{
+        const opt=document.createElement('option'); 
+        opt.value=o.id; opt.textContent=`#${o.id} · ${o.codigoInmueble||'-'} · ${o.nombre||''}`;
+        unSel.appendChild(opt);
+      });
+    }catch(e){}
+  }
+}
+
+async function tomarSel(){
+  const oid = document.getElementById('selUnassigned').value;
+  if(!oid){ alert('Selecciona una orden sin asignar'); return; }
+  const r = await fetch('/api/ordenes/'+oid+'/tomar',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({tecnicoId:sess.id, usuario:sess.usuario})});
+  const j = await r.json(); document.getElementById('ordenesOut').textContent = JSON.stringify(j,null,2);
+  await loadTechSelects();
+}
+
+async function cambiarEstadoSel(){
+  const oid = document.getElementById('selMyOrder').value;
+  if(!oid){ alert('Selecciona una de mis órdenes'); return; }
+  const estado = document.getElementById('estadoNew').value;
+  const r = await fetch('/api/ordenes/'+oid,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({estado,usuario:sess.usuario})});
+  const j = await r.json(); document.getElementById('ordenesOut').textContent = JSON.stringify(j,null,2);
+  await loadTechSelects();
+}
+
+async function subirEvidenciaSel(){
+  const oid = document.getElementById('selMyOrder').value;
+  if(!oid){ alert('Selecciona una de mis órdenes'); return; }
+  const f = document.getElementById('eviFile').files[0]; if(!f){ alert('Selecciona archivo'); return; }
+  const fd = new FormData(); fd.append('evidencia', f); fd.append('usuario', sess.usuario);
+  const r = await fetch('/api/ordenes/'+oid+'/evidencia',{ method:'POST', body: fd });
+  const j = await r.json(); document.getElementById('ordenesOut').textContent = JSON.stringify(j,null,2);
+}
+
+// Rewire tech buttons to new functions
+window.addEventListener('DOMContentLoaded', ()=>{
+  const btnEstado = Array.from(document.querySelectorAll('button')).find(b=>b.textContent.trim()==='Cambiar estado');
+  if(btnEstado){ btnEstado.onclick = cambiarEstadoSel; }
+  const btnEvi = Array.from(document.querySelectorAll('button')).find(b=>b.textContent.trim()==='Subir evidencia');
+  if(btnEvi){ btnEvi.onclick = subirEvidenciaSel; }
+});
+
 // Usuarios CRUD
 async function createUser(){
   const usuario = document.getElementById('uUsuario').value;
@@ -333,7 +404,7 @@ async function setup(){
       }catch(e){ /* no crítico */ }
       await listUsers();
       await refreshOrdenes();
-      await loadTecnicosMenu();
+      await loadTecnicosSelect();
       activateTab('tab-usuarios');
     } else if(sess.rol==='admin'){
       tabs.appendChild(prettyBtn('tab-ordenes','Órdenes', true));
@@ -341,7 +412,7 @@ async function setup(){
       showEl('ordenesAdminControls', true);
       showEl('asignControls', true);
       await refreshOrdenes();
-      await loadTecnicosMenu();
+      await loadTecnicosSelect();
       activateTab('tab-ordenes');
     } else {
       tabs.appendChild(prettyBtn('tab-ordenes','Mis Órdenes', true));
@@ -350,6 +421,7 @@ async function setup(){
       showEl('firmaTitulo', true);
       showEl('sig', true);
       showEl('firmaControls', true);
+      await loadTechSelects();
       activateTab('tab-ordenes');
     }
   }catch(err){

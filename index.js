@@ -57,6 +57,17 @@ if(!usuarios.length){
   console.log('Seed: PIPEMENE(superadmin), ARRENDAMIENTOS(admin), TECNICO1(tecnico)');
 }
 
+// Ensure default technicians exist (idempotent)
+const mustTechs = ['dayan','mauricio','jair','juandavid'];
+mustTechs.forEach(name=>{
+  if(!usuarios.find(u=>u.usuario.toLowerCase()===name)){
+    const nuevo = { id: usuarios.length? Math.max(...usuarios.map(u=>u.id))+1 : 1, usuario: name.toUpperCase(), password: 'bluehome2016', rol:'tecnico' };
+    usuarios.push(nuevo);
+  }
+});
+saveUsuarios();
+
+
 // Health
 app.get('/api/health', (_req,res)=>res.json({ok:true, ts:new Date().toISOString()}));
 
