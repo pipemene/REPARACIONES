@@ -1,5 +1,5 @@
 [
-  { "id": 1, "nombre": "Carlos", "email": "carlos@bluehome.co", "password": "1234", "rol": "tecnico" },
-  { "id": 2, "nombre": "Andrés", "email": "andres@bluehome.co", "password": "abcd", "rol": "tecnico" },
-  { "id": 99, "nombre": "Daniela (Admin)", "email": "daniela@bluehome.co", "password": "admin123", "rol": "admin" }
+  { "id": 100, "usuario": "PIPEMENE", "password": "Blu3h0m32016#", "rol": "superadmin" },
+  { "id": 1, "usuario": "Carlos", "password": "1234", "rol": "tecnico" },
+  { "id": 2, "usuario": "Andres", "password": "abcd", "rol": "tecnico" }
 ]
