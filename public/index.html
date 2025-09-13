@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Gestor de Reparaciones</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
 </head>
 <body class="bg-light">
   <div class="container mt-5">
@@ -15,10 +15,10 @@
       <h3 class="mb-3">Login</h3>
       <form id="loginForm">
         <div class="mb-3">
-          <input type="text" id="usuario" class="form-control" placeholder="Usuario" required>
+          <input type="text" id="usuario" class="form-control" placeholder="Usuario" required/>
         </div>
         <div class="mb-3">
-          <input type="password" id="password" class="form-control" placeholder="Contraseña" required>
+          <input type="password" id="password" class="form-control" placeholder="Contraseña" required/>
         </div>
         <button type="submit" class="btn btn-primary w-100">Ingresar</button>
       </form>
@@ -46,21 +46,11 @@
         <div class="tab-pane fade show active" id="ordenesTab">
           <h4>Crear Orden</h4>
           <form id="crearOrdenForm" class="row g-3 mb-4">
-            <div class="col-md-3">
-              <input type="text" id="codigoInmueble" class="form-control" placeholder="Código inmueble" required>
-            </div>
-            <div class="col-md-3">
-              <input type="text" id="cliente" class="form-control" placeholder="Nombre cliente" required>
-            </div>
-            <div class="col-md-3">
-              <input type="text" id="telefono" class="form-control" placeholder="Teléfono" required>
-            </div>
-            <div class="col-md-3">
-              <textarea id="descripcion" class="form-control" placeholder="Descripción del daño" required></textarea>
-            </div>
-            <div class="col-12">
-              <button type="submit" class="btn btn-primary">Crear Orden</button>
-            </div>
+            <div class="col-md-3"><input type="text" id="codigoInmueble" class="form-control" placeholder="Código inmueble" required/></div>
+            <div class="col-md-3"><input type="text" id="cliente" class="form-control" placeholder="Nombre cliente" required/></div>
+            <div class="col-md-3"><input type="text" id="telefono" class="form-control" placeholder="Teléfono" required/></div>
+            <div class="col-md-3"><textarea id="descripcion" class="form-control" placeholder="Descripción" required></textarea></div>
+            <div class="col-12"><button type="submit" class="btn btn-primary">Crear Orden</button></div>
           </form>
 
           <h4>Órdenes</h4>
@@ -83,21 +73,15 @@
         <div class="tab-pane fade" id="usuariosTab">
           <h4>Gestión de Usuarios</h4>
           <form id="crearUsuarioForm" class="row g-3 mb-3">
-            <div class="col-md-3">
-              <input type="text" id="nuevoUsuario" class="form-control" placeholder="Usuario" required>
-            </div>
-            <div class="col-md-3">
-              <input type="password" id="nuevoPassword" class="form-control" placeholder="Contraseña" required>
-            </div>
+            <div class="col-md-3"><input type="text" id="nuevoUsuario" class="form-control" placeholder="Usuario" required/></div>
+            <div class="col-md-3"><input type="password" id="nuevoPassword" class="form-control" placeholder="Contraseña" required/></div>
             <div class="col-md-3">
               <select id="nuevoRol" class="form-select">
                 <option value="tecnico">Técnico</option>
                 <option value="admin">Admin</option>
               </select>
             </div>
-            <div class="col-md-3">
-              <button type="submit" class="btn btn-success w-100">Crear Usuario</button>
-            </div>
+            <div class="col-md-3"><button type="submit" class="btn btn-success w-100">Crear Usuario</button></div>
           </form>
 
           <table class="table table-bordered" id="usuariosTable">
@@ -120,20 +104,11 @@
   <div class="modal fade" id="editarUsuarioModal" tabindex="-1">
     <div class="modal-dialog">
       <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">Editar Usuario</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-        </div>
+        <div class="modal-header"><h5 class="modal-title">Editar Usuario</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
         <div class="modal-body">
-          <input type="hidden" id="editarId">
-          <div class="mb-3">
-            <label class="form-label">Usuario</label>
-            <input type="text" id="editarUsuario" class="form-control">
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Nueva Contraseña (opcional)</label>
-            <input type="password" id="editarPassword" class="form-control">
-          </div>
+          <input type="hidden" id="editarId"/>
+          <div class="mb-3"><label class="form-label">Usuario</label><input type="text" id="editarUsuario" class="form-control"/></div>
+          <div class="mb-3"><label class="form-label">Nueva Contraseña (opcional)</label><input type="password" id="editarPassword" class="form-control"/></div>
           <div class="mb-3">
             <label class="form-label">Rol</label>
             <select id="editarRol" class="form-select">
@@ -147,54 +122,27 @@
     </div>
   </div>
 
+  <!-- Modal Historial -->
+  <div class="modal fade" id="historialModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header"><h5 class="modal-title">Historial de Cambios</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body"><ul id="historialList" class="list-group"></ul></div>
+      </div>
+    </div>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script>
     let usuarioActivo = null;
     let usuariosGlobal = [];
 
-    async function cargarOrdenes() {
-      const res = await fetch('/api/ordenes');
-      const ordenes = await res.json();
-      const tbody = document.querySelector('#ordenesTable tbody');
-      tbody.innerHTML = '';
-      ordenes.forEach(o => {
-        const tecnico = usuariosGlobal.find(u => u.id === o.tecnicoId);
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${o.id}</td>
-          <td>${o.nombre}</td>
-          <td>${o.descripcion}</td>
-          <td>${o.estado}</td>
-          <td>
-            <select onchange="asignarTecnico(${o.id}, this.value)" class="form-select form-select-sm">
-              <option value="">${tecnico ? tecnico.usuario : 'Sin asignar'}</option>
-              ${usuariosGlobal.filter(u => u.rol === 'tecnico').map(u => `<option value="${u.id}">${u.usuario}</option>`)}
-            </select>
-          </td>
-          <td>
-            <a class="btn btn-secondary btn-sm" href="/api/ordenes/${o.id}/pdf" target="_blank">PDF</a>
-          </td>`;
-        tbody.appendChild(tr);
-      });
-    }
-
-    async function asignarTecnico(id, tecnicoId) {
-      if (!tecnicoId) return;
-      await fetch('/api/ordenes/' + id + '/asignar', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tecnicoId, usuario: usuarioActivo.usuario })
-      });
-      cargarOrdenes();
-    }
-
     async function cargarUsuarios() {
       const res = await fetch('/api/usuarios');
-      const data = await res.json();
-      usuariosGlobal = data;
+      usuariosGlobal = await res.json();
       const tbody = document.querySelector('#usuariosTable tbody');
       tbody.innerHTML = '';
-      data.forEach(u => {
+      usuariosGlobal.forEach(u => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td>${u.id}</td>
@@ -210,7 +158,7 @@
 
     async function eliminarUsuario(id) {
       await fetch('/api/usuarios/' + id, { method: 'DELETE' });
-      cargarUsuarios();
+      await cargarUsuarios();
     }
 
     function abrirEditar(id, usuario, rol) {
@@ -232,7 +180,8 @@
         body: JSON.stringify({ usuario, password, rol })
       });
       bootstrap.Modal.getInstance(document.getElementById('editarUsuarioModal')).hide();
-      cargarUsuarios();
+      await cargarUsuarios();
+      await cargarOrdenes(); // refresh tech names in table
     });
 
     document.getElementById('crearUsuarioForm').addEventListener('submit', async (e) => {
@@ -246,26 +195,74 @@
         body: JSON.stringify({ usuario, password, rol })
       });
       e.target.reset();
-      cargarUsuarios();
+      await cargarUsuarios();
+      await cargarOrdenes();
     });
 
-    document.getElementById('crearOrdenForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const orden = {
-        codigoInmueble: document.getElementById('codigoInmueble').value,
-        nombre: document.getElementById('cliente').value,
-        telefono: document.getElementById('telefono').value,
-        descripcion: document.getElementById('descripcion').value
-      };
-      await fetch('/api/ordenes', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(orden)
+    async function cargarOrdenes() {
+      const res = await fetch('/api/ordenes');
+      const ordenes = await res.json();
+      const tbody = document.querySelector('#ordenesTable tbody');
+      tbody.innerHTML = '';
+      ordenes.forEach(o => {
+        const tecnico = usuariosGlobal.find(u => u.id === o.tecnicoId);
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${o.id}</td>
+          <td>${o.nombre}</td>
+          <td>${o.descripcion}</td>
+          <td>
+            <select class="form-select form-select-sm" onchange="cambiarEstado(${o.id}, this.value)">
+              ${['pendiente','en proceso','finalizada','cancelada','esperando repuestos'].map(s => `<option value="${s}" ${o.estado===s?'selected':''}>${s}</option>`).join('')}
+            </select>
+          </td>
+          <td>
+            <select onchange="asignarTecnico(${o.id}, this.value)" class="form-select form-select-sm">
+              <option value="">${tecnico ? tecnico.usuario : 'Sin asignar'}</option>
+              ${usuariosGlobal.filter(u => u.rol === 'tecnico').map(u => `<option value="${u.id}">${u.usuario}</option>`)}
+            </select>
+          </td>
+          <td>
+            <a class="btn btn-secondary btn-sm" href="/api/ordenes/${o.id}/pdf" target="_blank">PDF</a>
+            <button class="btn btn-info btn-sm" onclick="verHistorial(${o.id})">Historial</button>
+          </td>`;
+        tbody.appendChild(tr);
       });
-      e.target.reset();
-      cargarOrdenes();
-    });
+    }
 
+    async function asignarTecnico(id, tecnicoId) {
+      if (!tecnicoId) return;
+      await fetch('/api/ordenes/' + id + '/asignar', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tecnicoId, usuario: usuarioActivo.usuario })
+      });
+      await cargarOrdenes();
+    }
+
+    async function cambiarEstado(id, estado) {
+      await fetch('/api/ordenes/' + id, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ estado, usuario: usuarioActivo.usuario })
+      });
+    }
+
+    async function verHistorial(id) {
+      const res = await fetch('/api/ordenes/' + id + '/historial');
+      const historial = await res.json();
+      const list = document.getElementById('historialList');
+      list.innerHTML = '';
+      historial.forEach(h => {
+        const li = document.createElement('li');
+        li.className = 'list-group-item';
+        li.textContent = `${h.fecha} - ${h.usuario}: ${h.accion}`;
+        list.appendChild(li);
+      });
+      new bootstrap.Modal(document.getElementById('historialModal')).show();
+    }
+
+    // Login
     document.getElementById('loginForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const usuario = document.getElementById('usuario').value;
@@ -281,8 +278,8 @@
         document.getElementById('loginCard').style.display = 'none';
         document.getElementById('dashboardSuperadmin').style.display = 'block';
         document.getElementById('superadminNombre').textContent = data.usuario;
-        cargarUsuarios();
-        cargarOrdenes();
+        await cargarUsuarios();
+        await cargarOrdenes();
       } else {
         alert('Acceso restringido');
       }
@@ -292,6 +289,24 @@
       usuarioActivo = null;
       document.getElementById('dashboardSuperadmin').style.display = 'none';
       document.getElementById('loginCard').style.display = 'block';
+    });
+
+    // Create order
+    document.getElementById('crearOrdenForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const orden = {
+        codigoInmueble: document.getElementById('codigoInmueble').value,
+        nombre: document.getElementById('cliente').value,
+        telefono: document.getElementById('telefono').value,
+        descripcion: document.getElementById('descripcion').value
+      };
+      await fetch('/api/ordenes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(orden)
+      });
+      e.target.reset();
+      await cargarOrdenes();
     });
   </script>
 </body>

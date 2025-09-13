@@ -1,7 +1,7 @@
 {
   "name": "reparaciones",
-  "version": "1.0.0",
-  "description": "Gestor de reparaciones con login y asignación de técnicos",
+  "version": "1.1.0",
+  "description": "Gestor de reparaciones con superadmin, asignaci\u00f3n, estados, historial y PDF",
   "main": "index.js",
   "type": "module",
   "scripts": {
