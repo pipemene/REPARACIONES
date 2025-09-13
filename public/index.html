@@ -3,62 +3,73 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Reparaciones · Panel básico</title>
+  <title>Reparaciones · Panel</title>
   <link rel="stylesheet" href="/styles.css" />
 </head>
 <body>
   <div class="container">
-    <h1>Reparaciones · Panel básico</h1>
-    <p class="small">Este panel usa la misma URL del backend. Sirve para probar login, usuarios y órdenes.</p>
+    <h1>Reparaciones</h1>
+    <div id="loginCard" class="card">
+      <h3>Iniciar sesión</h3>
+      <div class="row">
+        <input id="lUser" placeholder="Usuario" />
+        <input id="lPass" type="password" placeholder="Contraseña" />
+        <button onclick="doLogin()">Entrar</button>
+      </div>
+      <p class="badge">Superadmin: PIPEMENE / Blu3h0m32016</p>
+      <p class="badge">Admin: ARRENDAMIENTOS / Bluehome2016</p>
+      <p class="badge">Técnico demo: TECNICO1 / 1234</p>
+      <pre id="loginOut"></pre>
+    </div>
 
-    <div class="grid">
+    <div id="app" class="hidden">
       <div class="card">
-        <h3>Login</h3>
-        <label>Usuario</label>
-        <input id="loginUser" placeholder="superadmin" />
-        <label>Contraseña</label>
-        <input id="loginPass" type="password" placeholder="admin" />
-        <button onclick="doLogin()">Iniciar sesión</button>
-        <div id="who" class="small" style="margin-top:8px;"></div>
-        <pre id="loginOut"></pre>
+        <div class="row">
+          <div id="who"></div>
+          <button onclick="logout()">Cerrar sesión</button>
+        </div>
       </div>
 
-      <div class="card">
-        <h3>Usuarios</h3>
+      <!-- SUPERADMIN: gestión de usuarios -->
+      <div id="usersCard" class="card hidden">
+        <h3>Usuarios (solo superadmin)</h3>
         <div class="row">
-          <button onclick="listUsers()">Listar usuarios</button>
-        </div>
-        <label>Nuevo usuario</label>
-        <div class="row">
-          <input id="uUsuario" placeholder="usuario" style="flex:1" />
-          <input id="uPass" placeholder="password" style="flex:1" />
-          <select id="uRol">
-            <option>operador</option>
-            <option>tecnico</option>
-            <option>admin</option>
-            <option>superadmin</option>
-          </select>
-          <button onclick="createUser()">Crear</button>
+          <input id="uUsuario" placeholder="Usuario" />
+          <input id="uPass" placeholder="Contraseña" />
+          <select id="uRol"></select>
+          <button onclick="createUser()">Crear usuario</button>
         </div>
         <pre id="usersOut"></pre>
       </div>
 
-      <div class="card full">
-        <h3>Órdenes</h3>
+      <!-- ADMIN & SUPERADMIN: órdenes -->
+      <div id="ordenesAdmin" class="card hidden">
+        <h3>Órdenes (admin/superadmin)</h3>
         <div class="row">
-          <button onclick="listOrdenes()">Listar órdenes</button>
-        </div>
-        <div class="row">
-          <input id="oCodigo" placeholder="Código inmueble" style="flex:1" />
-          <input id="oNombre" placeholder="Cliente" style="flex:1" />
-          <input id="oTel" placeholder="Teléfono" style="flex:1" />
-          <input id="oDesc" placeholder="Descripción del daño" style="flex:2" />
-          <button onclick="crearOrden()">Crear orden</button>
+          <input id="oCodigo" placeholder="Código inmueble" />
+          <input id="oNombre" placeholder="Cliente" />
+          <input id="oTel" placeholder="Teléfono" />
+          <input id="oDesc" placeholder="Descripción" style="flex:2" />
+          <button onclick="crearOrden()">Crear</button>
+          <button onclick="listOrdenes()">Listar</button>
         </div>
         <div class="row">
           <input id="asigId" placeholder="ID orden" />
           <input id="asigTec" placeholder="ID técnico" />
           <button onclick="asignar()">Asignar técnico</button>
+          <input id="pdfId" placeholder="ID orden" />
+          <button onclick="descargarPDF()">Descargar PDF</button>
+        </div>
+        <pre id="ordenesOut"></pre>
+      </div>
+
+      <!-- TÉCNICO: mis órdenes + firma y evidencia -->
+      <div id="ordenesTec" class="card hidden">
+        <h3>Mis órdenes (técnico)</h3>
+        <div class="row">
+          <button onclick="listarMisOrdenes()">Listar mis órdenes</button>
+          <input id="tomarId" placeholder="ID orden" />
+          <button onclick="tomar()">Tomar orden</button>
         </div>
         <div class="row">
           <input id="estadoId" placeholder="ID orden" />
@@ -74,116 +85,137 @@
           <input id="eviFile" type="file" />
           <button onclick="subirEvidencia()">Subir evidencia</button>
         </div>
+        <h4>Firma del inquilino</h4>
+        <canvas id="sig" width="320" height="160"></canvas>
         <div class="row">
-          <input id="pdfId" placeholder="ID orden" />
-          <button onclick="descargarPDF()">Descargar PDF</button>
+          <input id="sigId" placeholder="ID orden" />
+          <button onclick="limpiarFirma()">Limpiar</button>
+          <button onclick="enviarFirma()">Guardar firma</button>
         </div>
-        <pre id="ordenesOut"></pre>
+        <pre id="misOut"></pre>
       </div>
     </div>
   </div>
 
 <script>
 let session = null;
+const who = document.getElementById('who');
+const app = document.getElementById('app');
+const loginCard = document.getElementById('loginCard');
 
-function setWho() {
-  const who = document.getElementById('who');
-  if (!session) { who.textContent = 'No autenticado'; return; }
+function show(sectionId, show=true){ document.getElementById(sectionId).classList.toggle('hidden', !show); }
+
+function setWho(){
+  if(!session){ who.textContent=''; return; }
   who.innerHTML = 'Conectado como <span class="badge">'+session.usuario+'</span> · rol <span class="badge">'+session.rol+'</span>';
 }
 
 async function doLogin(){
-  const usuario = document.getElementById('loginUser').value || 'superadmin';
-  const password = document.getElementById('loginPass').value || 'admin';
-  const r = await fetch('/api/login', {
-    method:'POST', headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({ usuario, password })
-  });
+  const usuario = document.getElementById('lUser').value;
+  const password = document.getElementById('lPass').value;
+  const r = await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({usuario,password})});
   const j = await r.json();
-  session = j.error ? null : j;
-  document.getElementById('loginOut').textContent = JSON.stringify(j, null, 2);
+  document.getElementById('loginOut').textContent = JSON.stringify(j,null,2);
+  if(!j || j.error){ alert(j.error || 'Login falló'); return; }
+  session = j;
+  loginCard.classList.add('hidden');
+  app.classList.remove('hidden');
   setWho();
+  // Roles
+  if(session.isSuperAdmin){
+    show('usersCard', true);
+    show('ordenesAdmin', true);
+  } else if(session.isAdmin){
+    show('usersCard', false);
+    show('ordenesAdmin', true);
+  } else if(session.isTecnico){
+    show('ordenesTec', true);
+  }
+  // Cargar roles para superadmin
+  if(session.isSuperAdmin){
+    const rroles = await fetch('/api/usuarios/roles'); const roles = await rroles.json();
+    document.getElementById('uRol').innerHTML = roles.map(r=>`<option>${r}</option>`).join('');
+  }
 }
 
-async function listUsers(){
-  const r = await fetch('/api/usuarios');
-  const j = await r.json();
-  document.getElementById('usersOut').textContent = JSON.stringify(j, null, 2);
+function logout(){
+  session = null;
+  app.classList.add('hidden');
+  loginCard.classList.remove('hidden');
 }
 
+// Usuarios
 async function createUser(){
   const usuario = document.getElementById('uUsuario').value;
   const password = document.getElementById('uPass').value;
   const rol = document.getElementById('uRol').value;
-  const r = await fetch('/api/usuarios', {
-    method:'POST', headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({ usuario, password, rol })
-  });
-  const j = await r.json();
-  document.getElementById('usersOut').textContent = JSON.stringify(j, null, 2);
-  listUsers();
+  const r = await fetch('/api/usuarios',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({usuario,password,rol})});
+  const j = await r.json(); document.getElementById('usersOut').textContent = JSON.stringify(j,null,2);
 }
 
-async function listOrdenes(){
-  const r = await fetch('/api/ordenes');
-  const j = await r.json();
-  document.getElementById('ordenesOut').textContent = JSON.stringify(j, null, 2);
-}
-
+// Órdenes admin
+async function listOrdenes(){ const r=await fetch('/api/ordenes'); const j=await r.json(); document.getElementById('ordenesOut').textContent = JSON.stringify(j,null,2); }
 async function crearOrden(){
   const codigoInmueble = document.getElementById('oCodigo').value;
   const nombre = document.getElementById('oNombre').value;
   const telefono = document.getElementById('oTel').value;
   const descripcion = document.getElementById('oDesc').value;
-  const r = await fetch('/api/ordenes', {
-    method:'POST', headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({ codigoInmueble, nombre, telefono, descripcion })
-  });
-  const j = await r.json();
-  document.getElementById('ordenesOut').textContent = JSON.stringify(j, null, 2);
-  listOrdenes();
+  const r = await fetch('/api/ordenes',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({codigoInmueble,nombre,telefono,descripcion})});
+  const j = await r.json(); document.getElementById('ordenesOut').textContent = JSON.stringify(j,null,2);
 }
-
 async function asignar(){
   const id = document.getElementById('asigId').value;
-  const tecnicoId = document.getElementById('asigTec').value;
-  const r = await fetch('/api/ordenes/'+id+'/asignar', {
-    method:'PUT', headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({ tecnicoId, usuario: (session?.usuario || 'Admin') })
-  });
-  const j = await r.json();
-  document.getElementById('ordenesOut').textContent = JSON.stringify(j, null, 2);
+  const tecnicoId = parseInt(document.getElementById('asigTec').value);
+  const r = await fetch('/api/ordenes/'+id+'/asignar',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({tecnicoId,usuario:session?.usuario||'Admin'})});
+  const j = await r.json(); document.getElementById('ordenesOut').textContent = JSON.stringify(j,null,2);
 }
+function descargarPDF(){ const id=document.getElementById('pdfId').value; window.open('/api/ordenes/'+id+'/pdf','_blank'); }
 
+// Técnico
+async function listarMisOrdenes(){
+  const r = await fetch('/api/ordenes?mine=1&tecnicoId='+session.id);
+  const j = await r.json();
+  document.getElementById('misOut').textContent = JSON.stringify(j,null,2);
+}
+async function tomar(){
+  const id = document.getElementById('tomarId').value;
+  const r = await fetch('/api/ordenes/'+id+'/tomar',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({tecnicoId:session.id, usuario: session.usuario})});
+  const j = await r.json(); document.getElementById('misOut').textContent = JSON.stringify(j,null,2);
+}
 async function cambiarEstado(){
   const id = document.getElementById('estadoId').value;
   const estado = document.getElementById('estadoNew').value;
-  const r = await fetch('/api/ordenes/'+id, {
-    method:'PUT', headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({ estado, usuario: (session?.usuario || 'Sistema') })
-  });
-  const j = await r.json();
-  document.getElementById('ordenesOut').textContent = JSON.stringify(j, null, 2);
+  const r = await fetch('/api/ordenes/'+id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({estado,usuario:session?.usuario||'Tecnico'})});
+  const j = await r.json(); document.getElementById('misOut').textContent = JSON.stringify(j,null,2);
 }
-
 async function subirEvidencia(){
   const id = document.getElementById('eviId').value;
   const f = document.getElementById('eviFile').files[0];
-  if(!f){ alert('Selecciona un archivo'); return; }
-  const fd = new FormData();
-  fd.append('evidencia', f);
-  fd.append('usuario', (session?.usuario || 'Técnico'));
-  const r = await fetch('/api/ordenes/'+id+'/evidencia', { method:'POST', body: fd });
-  const j = await r.json();
-  document.getElementById('ordenesOut').textContent = JSON.stringify(j, null, 2);
+  if(!f){ alert('Selecciona archivo'); return; }
+  const fd = new FormData(); fd.append('evidencia', f); fd.append('usuario', session?.usuario || 'Tecnico');
+  const r = await fetch('/api/ordenes/'+id+'/evidencia',{ method:'POST', body: fd });
+  const j = await r.json(); document.getElementById('misOut').textContent = JSON.stringify(j,null,2);
 }
 
-function descargarPDF(){
-  const id = document.getElementById('pdfId').value;
-  window.open('/api/ordenes/'+id+'/pdf', '_blank');
+// Firma
+const canvas = document.getElementById('sig');
+const ctx = canvas.getContext('2d');
+let drawing=false, prev=null;
+canvas.addEventListener('pointerdown', e=>{ drawing=true; prev={x:e.offsetX,y:e.offsetY}; });
+canvas.addEventListener('pointermove', e=>{
+  if(!drawing) return;
+  ctx.lineWidth = 2; ctx.lineCap='round';
+  ctx.beginPath(); ctx.moveTo(prev.x, prev.y); ctx.lineTo(e.offsetX, e.offsetY); ctx.stroke();
+  prev={x:e.offsetX,y:e.offsetY};
+});
+canvas.addEventListener('pointerup', ()=>drawing=false);
+function limpiarFirma(){ ctx.clearRect(0,0,canvas.width,canvas.height); }
+async function enviarFirma(){
+  const id = document.getElementById('sigId').value;
+  const data = canvas.toDataURL('image/png');
+  const r = await fetch('/api/ordenes/'+id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({firma:data,usuario:session?.usuario||'Tecnico'})});
+  const j = await r.json(); document.getElementById('misOut').textContent = JSON.stringify(j,null,2);
 }
-
-setWho();
 </script>
 </body>
 </html>

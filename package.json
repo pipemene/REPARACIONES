@@ -1,7 +1,7 @@
 {
   "name": "reparaciones",
-  "version": "1.2.0",
-  "description": "Gestor de reparaciones con superadmin, asignaci\u00f3n, estados, historial, PDF y frontend b\u00e1sico",
+  "version": "1.3.0",
+  "description": "Gestor de reparaciones con roles (PIPEMENE superadmin, ARRENDAMIENTOS admin, tecnicos) y frontend b\u00e1sico",
   "main": "index.js",
   "type": "module",
   "scripts": {
