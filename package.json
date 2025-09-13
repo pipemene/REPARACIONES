@@ -1,7 +1,7 @@
 {
   "name": "reparaciones",
-  "version": "1.4.0",
-  "description": "Login en / y panel separado en /panel.html; roles y seeds",
+  "version": "1.5.0",
+  "description": "Login minimal y dashboard con men\u00fa por rol (superadmin: Usuarios/\u00d3rdenes; admin: \u00d3rdenes; t\u00e9cnico: Mis \u00d3rdenes)",
   "main": "index.js",
   "type": "module",
   "scripts": {

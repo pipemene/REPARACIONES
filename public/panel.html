@@ -8,28 +8,41 @@
   <link rel="stylesheet" href="/styles.css" />
 </head>
 <body>
-  <div class="grid">
-    <div class="card-wide">
-      <div class="row">
-        <div id="who"></div>
-        <button onclick="logout()">Cerrar sesión</button>
-      </div>
-    </div>
+  <div class="topbar">
+    <img src="/logo.svg" alt="Blue Home" />
+    <div class="sp"></div>
+    <div id="who"></div>
+    <button class="btn" onclick="logout()">Cerrar sesión</button>
+  </div>
+  <div class="container">
+    <nav class="tabs" id="tabs" class="hidden"></nav>
 
-    <div id="usersCard" class="card-wide hidden">
-      <h3>Usuarios (solo superadmin)</h3>
+    <!-- Secciones -->
+    <section id="tab-usuarios" class="card hidden">
+      <h3>Usuarios (superadmin)</h3>
       <div class="row">
         <input id="uUsuario" placeholder="Usuario" />
         <input id="uPass" placeholder="Contraseña" />
         <select id="uRol"></select>
         <button onclick="createUser()">Crear usuario</button>
       </div>
-      <pre id="usersOut"></pre>
-    </div>
-
-    <div id="ordenesAdmin" class="card-wide hidden">
-      <h3>Órdenes (admin/superadmin)</h3>
       <div class="row">
+        <input id="uIdEdit" placeholder="ID a editar" />
+        <input id="uPassEdit" placeholder="Nueva contraseña (opcional)" />
+        <select id="uRolEdit"><option value="">(rol sin cambios)</option></select>
+        <button onclick="editUser()">Guardar cambios</button>
+        <input id="uIdDel" placeholder="ID a eliminar" />
+        <button onclick="delUser()">Eliminar</button>
+      </div>
+      <div class="row">
+        <button onclick="listUsers()">Actualizar listado</button>
+      </div>
+      <pre id="usersOut"></pre>
+    </section>
+
+    <section id="tab-ordenes" class="card hidden">
+      <h3>Órdenes</h3>
+      <div class="row" id="ordenesAdminControls" class="hidden">
         <input id="oCodigo" placeholder="Código inmueble" />
         <input id="oNombre" placeholder="Cliente" />
         <input id="oTel" placeholder="Teléfono" />
@@ -37,24 +50,17 @@
         <button onclick="crearOrden()">Crear</button>
         <button onclick="listOrdenes()">Listar</button>
       </div>
-      <div class="row">
+      <div class="row" id="asignControls" class="hidden">
         <input id="asigId" placeholder="ID orden" />
         <input id="asigTec" placeholder="ID técnico" />
         <button onclick="asignar()">Asignar técnico</button>
         <input id="pdfId" placeholder="ID orden" />
         <button onclick="descargarPDF()">Descargar PDF</button>
       </div>
-      <pre id="ordenesOut"></pre>
-    </div>
-
-    <div id="ordenesTec" class="card-wide hidden">
-      <h3>Mis órdenes (técnico)</h3>
-      <div class="row">
+      <div class="row" id="tecControls" class="hidden">
         <button onclick="listarMisOrdenes()">Listar mis órdenes</button>
         <input id="tomarId" placeholder="ID orden" />
         <button onclick="tomar()">Tomar orden</button>
-      </div>
-      <div class="row">
         <input id="estadoId" placeholder="ID orden" />
         <select id="estadoNew">
           <option value="pendiente">pendiente</option>
@@ -62,50 +68,81 @@
           <option value="finalizada">finalizada</option>
         </select>
         <button onclick="cambiarEstado()">Cambiar estado</button>
-      </div>
-      <div class="row">
         <input id="eviId" placeholder="ID orden" />
         <input id="eviFile" type="file" />
         <button onclick="subirEvidencia()">Subir evidencia</button>
       </div>
-      <h4>Firma del inquilino</h4>
-      <canvas id="sig" width="320" height="160"></canvas>
-      <div class="row">
+      <h4 id="firmaTitulo" class="hidden">Firma del inquilino</h4>
+      <canvas id="sig" width="320" height="160" class="hidden"></canvas>
+      <div class="row hidden" id="firmaControls">
         <input id="sigId" placeholder="ID orden" />
         <button onclick="limpiarFirma()">Limpiar</button>
         <button onclick="enviarFirma()">Guardar firma</button>
       </div>
-      <pre id="misOut"></pre>
-    </div>
+      <pre id="ordenesOut"></pre>
+    </section>
   </div>
 
 <script>
 const params = new URLSearchParams(location.search);
 const rol = params.get('rol'); const id = parseInt(params.get('id')); const usuario = params.get('usuario');
 const who = document.getElementById('who');
+const tabs = document.getElementById('tabs');
 
-function show(idEl, show=true){ document.getElementById(idEl).classList.toggle('hidden', !show); }
 function logout(){ location.href = '/'; }
+function showEl(idEl, show=true){ document.getElementById(idEl).classList.toggle('hidden', !show); }
 
 function setWho(){
-  who.innerHTML = 'Conectado como <span class="badge">'+usuario+'</span> · rol <span class="badge">'+rol+'</span>';
+  who.innerHTML = '<span class="badge">'+usuario+'</span> · <span class="badge">'+rol+'</span>';
 }
 
+function navButton(id, label, active=false){
+  const b = document.createElement('button');
+  b.textContent = label; b.onclick = ()=>activateTab(id);
+  b.className = active ? 'active' : '';
+  return b;
+}
+
+function activateTab(id){
+  for(const el of ['tab-usuarios','tab-ordenes']) showEl(el, false);
+  document.getElementById(id).classList.remove('hidden');
+  for(const btn of tabs.querySelectorAll('button')) btn.classList.remove('active');
+  const idx = id==='tab-usuarios' ? 0 : 1;
+  tabs.querySelectorAll('button')[idx].classList.add('active');
+}
+
+// Setup UI by role
 async function setup(){
   setWho();
+  tabs.innerHTML = '';
+  // Tabs config
   if(rol==='superadmin'){
-    show('usersCard', true);
-    show('ordenesAdmin', true);
+    tabs.appendChild(navButton('tab-usuarios','Usuarios', true));
+    tabs.appendChild(navButton('tab-ordenes','Órdenes'));
+    // roles dropdowns
     const rroles = await fetch('/api/usuarios/roles'); const roles = await rroles.json();
     document.getElementById('uRol').innerHTML = roles.map(r=>`<option>${r}</option>`).join('');
+    document.getElementById('uRolEdit').innerHTML += roles.map(r=>`<option>${r}</option>`).join('');
+    showEl('tab-usuarios', true);
+    showEl('ordenesAdminControls', true);
+    showEl('asignControls', true);
   } else if(rol==='admin'){
-    show('ordenesAdmin', true);
+    tabs.appendChild(navButton('tab-ordenes','Órdenes', true));
+    showEl('tab-ordenes', true);
+    showEl('ordenesAdminControls', true);
+    showEl('asignControls', true);
   } else if(rol==='tecnico'){
-    show('ordenesTec', true);
+    tabs.appendChild(navButton('tab-ordenes','Mis Órdenes', true));
+    showEl('tab-ordenes', true);
+    showEl('tecControls', true);
+    showEl('firmaTitulo', true);
+    showEl('sig', true);
+    showEl('firmaControls', true);
   }
 }
 
-// Usuarios (solo superadmin en UI)
+// Usuarios
+async function listUsers(){ const r=await fetch('/api/usuarios'); const j=await r.json(); document.getElementById('usersOut').textContent = JSON.stringify(j,null,2); }
 async function createUser(){
   const usuario = document.getElementById('uUsuario').value;
   const password = document.getElementById('uPass').value;
@@ -113,8 +150,21 @@ async function createUser(){
   const r = await fetch('/api/usuarios',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({usuario,password,rol})});
   const j = await r.json(); document.getElementById('usersOut').textContent = JSON.stringify(j,null,2);
 }
+async function editUser(){
+  const idEdit = document.getElementById('uIdEdit').value;
+  const password = document.getElementById('uPassEdit').value;
+  const rol = document.getElementById('uRolEdit').value || undefined;
+  const body = {}; if(password) body.password = password; if(rol) body.rol = rol;
+  const r = await fetch('/api/usuarios/'+idEdit,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  const j = await r.json(); document.getElementById('usersOut').textContent = JSON.stringify(j,null,2);
+}
+async function delUser(){
+  const idDel = document.getElementById('uIdDel').value;
+  const r = await fetch('/api/usuarios/'+idDel,{method:'DELETE'});
+  const j = await r.json(); document.getElementById('usersOut').textContent = JSON.stringify(j,null,2);
+}
 
-// Órdenes admin
+// Órdenes
 async function listOrdenes(){ const r=await fetch('/api/ordenes'); const j=await r.json(); document.getElementById('ordenesOut').textContent = JSON.stringify(j,null,2); }
 async function crearOrden(){
   const codigoInmueble = document.getElementById('oCodigo').value;
@@ -136,18 +186,18 @@ function descargarPDF(){ const oid=document.getElementById('pdfId').value; windo
 async function listarMisOrdenes(){
   const r = await fetch('/api/ordenes?mine=1&tecnicoId='+id);
   const j = await r.json();
-  document.getElementById('misOut').textContent = JSON.stringify(j,null,2);
+  document.getElementById('ordenesOut').textContent = JSON.stringify(j,null,2);
 }
 async function tomar(){
   const oid = document.getElementById('tomarId').value;
   const r = await fetch('/api/ordenes/'+oid+'/tomar',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({tecnicoId:id, usuario})});
-  const j = await r.json(); document.getElementById('misOut').textContent = JSON.stringify(j,null,2);
+  const j = await r.json(); document.getElementById('ordenesOut').textContent = JSON.stringify(j,null,2);
 }
 async function cambiarEstado(){
   const oid = document.getElementById('estadoId').value;
   const estado = document.getElementById('estadoNew').value;
   const r = await fetch('/api/ordenes/'+oid,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({estado,usuario})});
-  const j = await r.json(); document.getElementById('misOut').textContent = JSON.stringify(j,null,2);
+  const j = await r.json(); document.getElementById('ordenesOut').textContent = JSON.stringify(j,null,2);
 }
 async function subirEvidencia(){
   const oid = document.getElementById('eviId').value;
@@ -155,11 +205,10 @@ async function subirEvidencia(){
   if(!f){ alert('Selecciona archivo'); return; }
   const fd = new FormData(); fd.append('evidencia', f); fd.append('usuario', usuario);
   const r = await fetch('/api/ordenes/'+oid+'/evidencia',{ method:'POST', body: fd });
-  const j = await r.json(); document.getElementById('misOut').textContent = JSON.stringify(j,null,2);
+  const j = await r.json(); document.getElementById('ordenesOut').textContent = JSON.stringify(j,null,2);
 }
 
 // Firma
-const canvas = document.createElement('canvas'); // placeholder if element not on page
 window.addEventListener('DOMContentLoaded', ()=>{
   const c = document.getElementById('sig'); if(!c) return;
   const ctx = c.getContext('2d');
@@ -177,7 +226,7 @@ window.addEventListener('DOMContentLoaded', ()=>{
     const oid = document.getElementById('sigId').value;
     const data = c.toDataURL('image/png');
     const r = await fetch('/api/ordenes/'+oid,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({firma:data,usuario})});
-    const j = await r.json(); document.getElementById('misOut').textContent = JSON.stringify(j,null,2);
+    const j = await r.json(); document.getElementById('ordenesOut').textContent = JSON.stringify(j,null,2);
   };
 });
 

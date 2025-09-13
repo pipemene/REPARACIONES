@@ -164,7 +164,7 @@ app.get('/api/ordenes/:id/pdf', (req,res)=>{
   doc.text(`Descripción: ${orden.descripcion}`); doc.text(`Estado: ${orden.estado}`); doc.text(`Fecha: ${new Date(orden.fecha).toLocaleString()}`);
   if(orden.tecnicoId){ const t=usuarios.find(u=>u.id===orden.tecnicoId); doc.text(`Técnico asignado: ${t? t.usuario: orden.tecnicoId}`); } else { doc.text('Técnico asignado: Sin asignar'); }
   if(orden.historial?.length){ doc.addPage().fontSize(16).text('Historial de Cambios:',{align:'left'}); orden.historial.forEach(h=>doc.fontSize(12).text(`${h.fecha} - ${h.usuario}: ${h.accion}`)); }
-  if(orden.firma && fs.existsSync(orden.firma)){ doc.addPage().fontSize(16).text('Firma del cliente:',{align:'left'}); doc.image(orden.firma,{fit:[300,200],align:'center'}); }
+  if(orden.firma && fs.existsSync(orden.firma)){ doc.addPage().fontSize(16).text('Firma del cliente:',{align:'left'}); doc.image(orden.firma,{fit:[300,200],align:'center']}); }
   if(orden.evidencias?.length){ doc.addPage().fontSize(16).text('Evidencias:',{align:'left'}); orden.evidencias.forEach(ev=>{ if(fs.existsSync(ev)){ try{ doc.image(ev,{fit:[250,250]}); doc.moveDown(); } catch { doc.fontSize(12).text(`Archivo: ${ev}`);} } else { doc.fontSize(12).text(`Archivo no encontrado: ${ev}`);} }); }
   doc.end(); stream.on('finish',()=>res.download(fp));
 });
