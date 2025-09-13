@@ -24,81 +24,137 @@
       </form>
     </div>
 
-    <!-- Dashboard Superadmin/Admin -->
-    <div id="dashboardAdmin" style="display:none;">
+    <!-- Dashboard SUPERADMIN -->
+    <div id="dashboardSuperadmin" style="display:none;">
       <div class="d-flex justify-content-between align-items-center mb-4">
-        <h3>Panel de Administración - <span id="adminNombre"></span></h3>
-        <button id="logoutBtn" class="btn btn-danger btn-sm">Cerrar sesión</button>
+        <h3>Panel Superadmin - <span id="superadminNombre"></span></h3>
+        <button id="logoutBtnSuperadmin" class="btn btn-danger btn-sm">Cerrar sesión</button>
       </div>
 
-      <h4>Gestión de Usuarios</h4>
-      <form id="crearUsuarioForm" class="row g-3 mb-3">
-        <div class="col-md-3">
-          <input type="text" id="nuevoUsuario" class="form-control" placeholder="Usuario" required>
-        </div>
-        <div class="col-md-3">
-          <input type="password" id="nuevoPassword" class="form-control" placeholder="Contraseña" required>
-        </div>
-        <div class="col-md-3">
-          <select id="nuevoRol" class="form-select">
-            <option value="tecnico">Técnico</option>
-            <option value="admin">Admin</option>
+      <!-- Tabs -->
+      <ul class="nav nav-tabs" id="superadminTabs">
+        <li class="nav-item">
+          <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#ordenesTab">Órdenes</button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link" data-bs-toggle="tab" data-bs-target="#usuariosTab">Usuarios</button>
+        </li>
+      </ul>
+
+      <div class="tab-content mt-3">
+        <!-- Tab Órdenes -->
+        <div class="tab-pane fade show active" id="ordenesTab">
+          <h4>Gestión de Órdenes</h4>
+          <form id="crearOrdenForm" class="row g-3 mb-4">
+            <div class="col-md-3">
+              <input type="text" id="codigoInmueble" class="form-control" placeholder="Código inmueble" required>
+            </div>
+            <div class="col-md-3">
+              <input type="text" id="cliente" class="form-control" placeholder="Nombre cliente" required>
+            </div>
+            <div class="col-md-3">
+              <input type="text" id="telefono" class="form-control" placeholder="Teléfono" required>
+            </div>
+            <div class="col-md-3">
+              <textarea id="descripcion" class="form-control" placeholder="Descripción del daño" required></textarea>
+            </div>
+            <div class="col-12">
+              <button type="submit" class="btn btn-primary">Crear Orden</button>
+            </div>
+          </form>
+
+          <input type="text" id="filtroCliente" class="form-control mb-2" placeholder="Buscar por cliente...">
+          <select id="filtroEstado" class="form-select mb-2">
+            <option value="">Filtrar por estado</option>
+            <option value="pendiente">Pendiente</option>
+            <option value="en proceso">En proceso</option>
+            <option value="finalizada">Finalizada</option>
+            <option value="cancelada">Cancelada</option>
+            <option value="esperando repuestos">Esperando repuestos</option>
           </select>
-        </div>
-        <div class="col-md-3">
-          <button type="submit" class="btn btn-success w-100">Crear Usuario</button>
-        </div>
-      </form>
 
-      <table class="table table-bordered" id="usuariosTable">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Usuario</th>
-            <th>Rol</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </div>
+          <table class="table table-bordered" id="ordenesTable">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Cliente</th>
+                <th>Descripción</th>
+                <th>Estado</th>
+                <th>Técnico Asignado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
 
-    <!-- Modal Editar Usuario -->
-    <div class="modal fade" id="editarUsuarioModal" tabindex="-1">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title">Editar Usuario</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-          </div>
-          <div class="modal-body">
-            <input type="hidden" id="editarId">
-            <div class="mb-3">
-              <label class="form-label">Usuario</label>
-              <input type="text" id="editarUsuario" class="form-control">
+        <!-- Tab Usuarios -->
+        <div class="tab-pane fade" id="usuariosTab">
+          <h4>Gestión de Usuarios</h4>
+          <form id="crearUsuarioForm" class="row g-3 mb-3">
+            <div class="col-md-3">
+              <input type="text" id="nuevoUsuario" class="form-control" placeholder="Usuario" required>
             </div>
-            <div class="mb-3">
-              <label class="form-label">Nueva Contraseña (opcional)</label>
-              <input type="password" id="editarPassword" class="form-control">
+            <div class="col-md-3">
+              <input type="password" id="nuevoPassword" class="form-control" placeholder="Contraseña" required>
             </div>
-            <div class="mb-3">
-              <label class="form-label">Rol</label>
-              <select id="editarRol" class="form-select">
+            <div class="col-md-3">
+              <select id="nuevoRol" class="form-select">
                 <option value="tecnico">Técnico</option>
                 <option value="admin">Admin</option>
               </select>
             </div>
-            <button class="btn btn-primary w-100" id="guardarCambiosBtn">Guardar Cambios</button>
-          </div>
+            <div class="col-md-3">
+              <button type="submit" class="btn btn-success w-100">Crear Usuario</button>
+            </div>
+          </form>
+
+          <table class="table table-bordered" id="usuariosTable">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Usuario</th>
+                <th>Rol</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
         </div>
       </div>
     </div>
-
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script>
     let usuarioActivo = null;
+
+    async function cargarOrdenes() {
+      const res = await fetch('/api/ordenes');
+      const ordenes = await res.json();
+      const tbody = document.querySelector('#ordenesTable tbody');
+      tbody.innerHTML = '';
+      ordenes
+        .filter(o => {
+          const clienteFiltro = document.getElementById('filtroCliente').value.toLowerCase();
+          const estadoFiltro = document.getElementById('filtroEstado').value;
+          return (!clienteFiltro || o.nombre.toLowerCase().includes(clienteFiltro)) &&
+                 (!estadoFiltro || o.estado === estadoFiltro);
+        })
+        .forEach(o => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${o.id}</td>
+            <td>${o.nombre}</td>
+            <td>${o.descripcion}</td>
+            <td>${o.estado}</td>
+            <td>${o.tecnicoId || 'Sin asignar'}</td>
+            <td>
+              <a class="btn btn-secondary btn-sm" href="/api/ordenes/${o.id}/pdf" target="_blank">PDF</a>
+            </td>`;
+          tbody.appendChild(tr);
+        });
+    }
 
     async function cargarUsuarios() {
       const res = await fetch('/api/usuarios');
@@ -112,7 +168,6 @@
           <td>${u.usuario}</td>
           <td>${u.rol}</td>
           <td>
-            <button class="btn btn-warning btn-sm" onclick="abrirEditar(${u.id}, '${u.usuario}', '${u.rol}')">Editar</button>
             <button class="btn btn-danger btn-sm" onclick="eliminarUsuario(${u.id})">Eliminar</button>
           </td>`;
         tbody.appendChild(tr);
@@ -123,28 +178,6 @@
       await fetch('/api/usuarios/' + id, { method: 'DELETE' });
       cargarUsuarios();
     }
-
-    function abrirEditar(id, usuario, rol) {
-      document.getElementById('editarId').value = id;
-      document.getElementById('editarUsuario').value = usuario;
-      document.getElementById('editarRol').value = rol;
-      document.getElementById('editarPassword').value = '';
-      new bootstrap.Modal(document.getElementById('editarUsuarioModal')).show();
-    }
-
-    document.getElementById('guardarCambiosBtn').addEventListener('click', async () => {
-      const id = document.getElementById('editarId').value;
-      const usuario = document.getElementById('editarUsuario').value;
-      const password = document.getElementById('editarPassword').value;
-      const rol = document.getElementById('editarRol').value;
-      await fetch('/api/usuarios/' + id, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ usuario, password, rol })
-      });
-      bootstrap.Modal.getInstance(document.getElementById('editarUsuarioModal')).hide();
-      cargarUsuarios();
-    });
 
     document.getElementById('crearUsuarioForm').addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -160,6 +193,26 @@
       cargarUsuarios();
     });
 
+    document.getElementById('crearOrdenForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const orden = {
+        codigoInmueble: document.getElementById('codigoInmueble').value,
+        nombre: document.getElementById('cliente').value,
+        telefono: document.getElementById('telefono').value,
+        descripcion: document.getElementById('descripcion').value
+      };
+      await fetch('/api/ordenes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(orden)
+      });
+      e.target.reset();
+      cargarOrdenes();
+    });
+
+    document.getElementById('filtroCliente').addEventListener('input', cargarOrdenes);
+    document.getElementById('filtroEstado').addEventListener('change', cargarOrdenes);
+
     document.getElementById('loginForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const usuario = document.getElementById('usuario').value;
@@ -170,20 +223,21 @@
         body: JSON.stringify({ usuario, password })
       });
       const data = await res.json();
-      if (data.usuario) {
+      if (data.usuario && data.rol === 'superadmin') {
         usuarioActivo = data;
         document.getElementById('loginCard').style.display = 'none';
-        document.getElementById('dashboardAdmin').style.display = 'block';
-        document.getElementById('adminNombre').textContent = data.usuario;
+        document.getElementById('dashboardSuperadmin').style.display = 'block';
+        document.getElementById('superadminNombre').textContent = data.usuario;
+        cargarOrdenes();
         cargarUsuarios();
       } else {
-        alert('Credenciales inválidas');
+        alert('Credenciales inválidas o no eres superadmin');
       }
     });
 
-    document.getElementById('logoutBtn').addEventListener('click', () => {
+    document.getElementById('logoutBtnSuperadmin').addEventListener('click', () => {
       usuarioActivo = null;
-      document.getElementById('dashboardAdmin').style.display = 'none';
+      document.getElementById('dashboardSuperadmin').style.display = 'none';
       document.getElementById('loginCard').style.display = 'block';
     });
   </script>
