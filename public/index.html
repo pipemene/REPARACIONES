@@ -1,1 +1,189 @@
-<!doctype html><html><head><title>Reparaciones</title></head><body><h1>Backend OK</h1><p>Usa <code>/api/health</code></p></body></html>
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Reparaciones · Panel básico</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>Reparaciones · Panel básico</h1>
+    <p class="small">Este panel usa la misma URL del backend. Sirve para probar login, usuarios y órdenes.</p>
+
+    <div class="grid">
+      <div class="card">
+        <h3>Login</h3>
+        <label>Usuario</label>
+        <input id="loginUser" placeholder="superadmin" />
+        <label>Contraseña</label>
+        <input id="loginPass" type="password" placeholder="admin" />
+        <button onclick="doLogin()">Iniciar sesión</button>
+        <div id="who" class="small" style="margin-top:8px;"></div>
+        <pre id="loginOut"></pre>
+      </div>
+
+      <div class="card">
+        <h3>Usuarios</h3>
+        <div class="row">
+          <button onclick="listUsers()">Listar usuarios</button>
+        </div>
+        <label>Nuevo usuario</label>
+        <div class="row">
+          <input id="uUsuario" placeholder="usuario" style="flex:1" />
+          <input id="uPass" placeholder="password" style="flex:1" />
+          <select id="uRol">
+            <option>operador</option>
+            <option>tecnico</option>
+            <option>admin</option>
+            <option>superadmin</option>
+          </select>
+          <button onclick="createUser()">Crear</button>
+        </div>
+        <pre id="usersOut"></pre>
+      </div>
+
+      <div class="card full">
+        <h3>Órdenes</h3>
+        <div class="row">
+          <button onclick="listOrdenes()">Listar órdenes</button>
+        </div>
+        <div class="row">
+          <input id="oCodigo" placeholder="Código inmueble" style="flex:1" />
+          <input id="oNombre" placeholder="Cliente" style="flex:1" />
+          <input id="oTel" placeholder="Teléfono" style="flex:1" />
+          <input id="oDesc" placeholder="Descripción del daño" style="flex:2" />
+          <button onclick="crearOrden()">Crear orden</button>
+        </div>
+        <div class="row">
+          <input id="asigId" placeholder="ID orden" />
+          <input id="asigTec" placeholder="ID técnico" />
+          <button onclick="asignar()">Asignar técnico</button>
+        </div>
+        <div class="row">
+          <input id="estadoId" placeholder="ID orden" />
+          <select id="estadoNew">
+            <option value="pendiente">pendiente</option>
+            <option value="en_proceso">en_proceso</option>
+            <option value="finalizada">finalizada</option>
+          </select>
+          <button onclick="cambiarEstado()">Cambiar estado</button>
+        </div>
+        <div class="row">
+          <input id="eviId" placeholder="ID orden" />
+          <input id="eviFile" type="file" />
+          <button onclick="subirEvidencia()">Subir evidencia</button>
+        </div>
+        <div class="row">
+          <input id="pdfId" placeholder="ID orden" />
+          <button onclick="descargarPDF()">Descargar PDF</button>
+        </div>
+        <pre id="ordenesOut"></pre>
+      </div>
+    </div>
+  </div>
+
+<script>
+let session = null;
+
+function setWho() {
+  const who = document.getElementById('who');
+  if (!session) { who.textContent = 'No autenticado'; return; }
+  who.innerHTML = 'Conectado como <span class="badge">'+session.usuario+'</span> · rol <span class="badge">'+session.rol+'</span>';
+}
+
+async function doLogin(){
+  const usuario = document.getElementById('loginUser').value || 'superadmin';
+  const password = document.getElementById('loginPass').value || 'admin';
+  const r = await fetch('/api/login', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ usuario, password })
+  });
+  const j = await r.json();
+  session = j.error ? null : j;
+  document.getElementById('loginOut').textContent = JSON.stringify(j, null, 2);
+  setWho();
+}
+
+async function listUsers(){
+  const r = await fetch('/api/usuarios');
+  const j = await r.json();
+  document.getElementById('usersOut').textContent = JSON.stringify(j, null, 2);
+}
+
+async function createUser(){
+  const usuario = document.getElementById('uUsuario').value;
+  const password = document.getElementById('uPass').value;
+  const rol = document.getElementById('uRol').value;
+  const r = await fetch('/api/usuarios', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ usuario, password, rol })
+  });
+  const j = await r.json();
+  document.getElementById('usersOut').textContent = JSON.stringify(j, null, 2);
+  listUsers();
+}
+
+async function listOrdenes(){
+  const r = await fetch('/api/ordenes');
+  const j = await r.json();
+  document.getElementById('ordenesOut').textContent = JSON.stringify(j, null, 2);
+}
+
+async function crearOrden(){
+  const codigoInmueble = document.getElementById('oCodigo').value;
+  const nombre = document.getElementById('oNombre').value;
+  const telefono = document.getElementById('oTel').value;
+  const descripcion = document.getElementById('oDesc').value;
+  const r = await fetch('/api/ordenes', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ codigoInmueble, nombre, telefono, descripcion })
+  });
+  const j = await r.json();
+  document.getElementById('ordenesOut').textContent = JSON.stringify(j, null, 2);
+  listOrdenes();
+}
+
+async function asignar(){
+  const id = document.getElementById('asigId').value;
+  const tecnicoId = document.getElementById('asigTec').value;
+  const r = await fetch('/api/ordenes/'+id+'/asignar', {
+    method:'PUT', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ tecnicoId, usuario: (session?.usuario || 'Admin') })
+  });
+  const j = await r.json();
+  document.getElementById('ordenesOut').textContent = JSON.stringify(j, null, 2);
+}
+
+async function cambiarEstado(){
+  const id = document.getElementById('estadoId').value;
+  const estado = document.getElementById('estadoNew').value;
+  const r = await fetch('/api/ordenes/'+id, {
+    method:'PUT', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ estado, usuario: (session?.usuario || 'Sistema') })
+  });
+  const j = await r.json();
+  document.getElementById('ordenesOut').textContent = JSON.stringify(j, null, 2);
+}
+
+async function subirEvidencia(){
+  const id = document.getElementById('eviId').value;
+  const f = document.getElementById('eviFile').files[0];
+  if(!f){ alert('Selecciona un archivo'); return; }
+  const fd = new FormData();
+  fd.append('evidencia', f);
+  fd.append('usuario', (session?.usuario || 'Técnico'));
+  const r = await fetch('/api/ordenes/'+id+'/evidencia', { method:'POST', body: fd });
+  const j = await r.json();
+  document.getElementById('ordenesOut').textContent = JSON.stringify(j, null, 2);
+}
+
+function descargarPDF(){
+  const id = document.getElementById('pdfId').value;
+  window.open('/api/ordenes/'+id+'/pdf', '_blank');
+}
+
+setWho();
+</script>
+</body>
+</html>

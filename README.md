@@ -1,5 +1,2 @@
-# BlueHome Reparaciones
-
-Inicia con `npm install` y `npm start`.
-
-Endpoints: `/api/health`, `/api/login`, `/api/usuarios`, `/api/ordenes`.
+# Reparaciones Base v5
+Frontend mínimo en /public/index.html para probar APIs.
