@@ -120,16 +120,31 @@
     </div></div>
   </div>
 
+  <!-- Modal Firma -->
+  <div class="modal fade" id="firmaModal" tabindex="-1">
+    <div class="modal-dialog"><div class="modal-content">
+      <div class="modal-header"><h5 class="modal-title">Firma del Cliente</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body text-center">
+        <canvas id="firmaPad" width="320" height="180" style="border:1px solid #000; touch-action: none;"></canvas>
+        <div class="d-flex gap-2 mt-2">
+          <button id="limpiarFirmaBtn" class="btn btn-secondary w-50">Limpiar</button>
+          <button id="guardarFirmaBtn" class="btn btn-primary w-50">Guardar Firma</button>
+        </div>
+      </div>
+    </div></div>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
   <script>
     let usuarioActivo = null;
     let usuariosGlobal = [];
     let ordenSeleccionada = null;
+    let signaturePad = null;
 
-    // ---- Helpers ----
     async function fetchJSON(url, opts={}) { const r = await fetch(url, opts); return r.json(); }
 
-    // ---- Admin / Superadmin ----
+    // Admin/Superadmin
     async function cargarUsuarios() {
       usuariosGlobal = await fetchJSON('/api/usuarios');
       const tbody = document.querySelector('#usuariosTable tbody'); if (!tbody) return;
@@ -137,9 +152,7 @@
       usuariosGlobal.forEach(u => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
-          <td>${u.id}</td>
-          <td>${u.usuario}</td>
-          <td>${u.rol}</td>
+          <td>${u.id}</td><td>${u.usuario}</td><td>${u.rol}</td>
           <td>
             <button class="btn btn-warning btn-sm" onclick="abrirEditar(${u.id}, '${u.usuario}', '${u.rol}')">Editar</button>
             <button class="btn btn-danger btn-sm" onclick="eliminarUsuario(${u.id})">Eliminar</button>
@@ -166,9 +179,7 @@
       const usuario = document.getElementById('editarUsuario').value;
       const password = document.getElementById('editarPassword').value;
       const rol = document.getElementById('editarRol').value;
-      await fetch('/api/usuarios/' + id, {
-        method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ usuario, password, rol })
-      });
+      await fetch('/api/usuarios/' + id, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ usuario, password, rol }) });
       bootstrap.Modal.getInstance(document.getElementById('editarUsuarioModal')).hide();
       await cargarUsuarios(); await cargarOrdenes();
     });
@@ -214,18 +225,12 @@
 
     async function asignarTecnico(id, tecnicoId) {
       if (!tecnicoId) return;
-      await fetch('/api/ordenes/' + id + '/asignar', {
-        method: 'PUT', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tecnicoId, usuario: usuarioActivo.usuario })
-      });
+      await fetch('/api/ordenes/' + id + '/asignar', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tecnicoId, usuario: usuarioActivo.usuario }) });
       await cargarOrdenes();
     }
 
     async function cambiarEstado(id, estado) {
-      await fetch('/api/ordenes/' + id, {
-        method: 'PUT', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ estado, usuario: usuarioActivo.usuario })
-      });
+      await fetch('/api/ordenes/' + id, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ estado, usuario: usuarioActivo.usuario }) });
     }
 
     async function verHistorial(id) {
@@ -239,19 +244,7 @@
       new bootstrap.Modal(document.getElementById('historialModal')).show();
     }
 
-    document.getElementById('crearOrdenForm')?.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const orden = {
-        codigoInmueble: document.getElementById('codigoInmueble').value,
-        nombre: document.getElementById('cliente').value,
-        telefono: document.getElementById('telefono').value,
-        descripcion: document.getElementById('descripcion').value
-      };
-      await fetch('/api/ordenes', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(orden) });
-      e.target.reset(); await cargarOrdenes();
-    });
-
-    // ---- Técnico ----
+    // Técnico
     async function cargarMisOrdenes() {
       const tbody = document.querySelector('#misOrdenesTable tbody'); if (!tbody) return;
       const mis = await fetchJSON('/api/mis-ordenes/' + usuarioActivo.id);
@@ -263,9 +256,10 @@
           <td>${o.nombre}</td>
           <td>${o.descripcion}</td>
           <td>${o.estado}</td>
-          <td>
+          <td class="d-flex gap-1">
             <a class="btn btn-secondary btn-sm" href="/api/ordenes/${o.id}/pdf" target="_blank">PDF</a>
             <button class="btn btn-warning btn-sm" onclick="abrirEvidencia(${o.id})">Evidencia</button>
+            <button class="btn btn-dark btn-sm" onclick="abrirFirma(${o.id})">Firma</button>
             <button class="btn btn-success btn-sm" onclick="finalizarOrden(${o.id})">Finalizar</button>
           </td>`;
         tbody.appendChild(tr);
@@ -288,15 +282,29 @@
       await cargarMisOrdenes();
     });
 
-    async function finalizarOrden(id) {
-      await fetch('/api/ordenes/' + id, {
-        method: 'PUT', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ estado: 'finalizada', usuario: usuarioActivo.usuario })
-      });
-      await cargarMisOrdenes();
+    function abrirFirma(id) {
+      ordenSeleccionada = id;
+      const canvas = document.getElementById('firmaPad');
+      signaturePad = new SignaturePad(canvas);
+      new bootstrap.Modal(document.getElementById('firmaModal')).show();
     }
 
-    // ---- Login Routing ----
+    document.getElementById('limpiarFirmaBtn').addEventListener('click', () => {
+      if (signaturePad) signaturePad.clear();
+    });
+
+    document.getElementById('guardarFirmaBtn').addEventListener('click', async () => {
+      if (!signaturePad || signaturePad.isEmpty()) { alert('Por favor firma primero'); return; }
+      const dataUrl = signaturePad.toDataURL('image/png');
+      await fetch('/api/ordenes/' + ordenSeleccionada, {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ firma: dataUrl, usuario: usuarioActivo.usuario })
+      });
+      bootstrap.Modal.getInstance(document.getElementById('firmaModal')).hide();
+      await cargarMisOrdenes();
+    });
+
+    // Login routing por rol
     document.getElementById('loginForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const usuario = document.getElementById('usuario').value;
@@ -311,7 +319,7 @@
         document.getElementById('dashboardTecnico').style.display = 'block';
         document.getElementById('tecnicoNombre').textContent = data.usuario;
         await cargarMisOrdenes();
-      } else { // admin o superadmin
+      } else {
         document.getElementById('dashboardAdmin').style.display = 'block';
         document.getElementById('adminNombre').textContent = data.usuario;
         document.getElementById('rolBadge').textContent = data.rol === 'superadmin' ? '🔑 Superadmin' : '👤 Admin';
