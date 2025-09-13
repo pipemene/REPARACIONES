@@ -46,16 +46,18 @@ function saveOrdenes() {
   fs.writeFileSync(dbPathOrdenes, JSON.stringify(ordenes, null, 2));
 }
 
-function saveUsuarios() {
-  fs.writeFileSync(dbPathUsuarios, JSON.stringify(usuarios, null, 2));
-}
+// Endpoint para obtener usuarios (solo técnicos)
+app.get('/api/usuarios', (req, res) => {
+  const tecnicos = usuarios.filter(u => u.rol === 'tecnico');
+  res.json(tecnicos);
+});
 
-// Login de técnicos
+// Login
 app.post('/api/login', (req, res) => {
   const { email, password } = req.body;
   const user = usuarios.find(u => u.email === email && u.password === password);
   if (!user) return res.status(401).json({ error: 'Credenciales inválidas' });
-  res.json({ mensaje: 'Login exitoso', tecnicoId: user.id, nombre: user.nombre });
+  res.json({ mensaje: 'Login exitoso', tecnicoId: user.id, nombre: user.nombre, rol: user.rol });
 });
 
 // Crear orden
@@ -81,23 +83,23 @@ app.post('/api/ordenes', (req, res) => {
   res.json(nuevaOrden);
 });
 
-// Asignar orden a un técnico
+// Asignar técnico
 app.put('/api/ordenes/:id/asignar', (req, res) => {
   const { id } = req.params;
   const { tecnicoId } = req.body;
   const orden = ordenes.find(o => o.id === parseInt(id));
   if (!orden) return res.status(404).json({ error: 'Orden no encontrada' });
-  orden.tecnicoId = tecnicoId;
+  orden.tecnicoId = parseInt(tecnicoId);
   saveOrdenes();
   res.json(orden);
 });
 
-// Listar todas las órdenes
+// Listar todas
 app.get('/api/ordenes', (req, res) => {
   res.json(ordenes);
 });
 
-// Listar órdenes de un técnico
+// Listar mis órdenes
 app.get('/api/mis-ordenes/:tecnicoId', (req, res) => {
   const { tecnicoId } = req.params;
   const misOrdenes = ordenes.filter(o => o.tecnicoId === parseInt(tecnicoId));
@@ -117,7 +119,7 @@ app.post('/api/ordenes/:id/evidencia', upload.single('evidencia'), (req, res) =>
   res.json({ mensaje: 'Evidencia subida correctamente', archivo: req.file.path });
 });
 
-// Actualizar orden (estado, firma base64)
+// Actualizar orden (estado, firma)
 app.put('/api/ordenes/:id', (req, res) => {
   const { id } = req.params;
   const orden = ordenes.find(o => o.id === parseInt(id));
@@ -136,7 +138,7 @@ app.put('/api/ordenes/:id', (req, res) => {
   res.json(orden);
 });
 
-// Generar PDF
+// Generar PDF con nombre del técnico
 app.get('/api/ordenes/:id/pdf', (req, res) => {
   const { id } = req.params;
   const orden = ordenes.find(o => o.id === parseInt(id));
@@ -155,7 +157,13 @@ app.get('/api/ordenes/:id/pdf', (req, res) => {
   doc.text(`Descripción: ${orden.descripcion}`);
   doc.text(`Estado: ${orden.estado}`);
   doc.text(`Fecha: ${new Date(orden.fecha).toLocaleString()}`);
-  doc.text(`Asignado a técnico ID: ${orden.tecnicoId || 'Sin asignar'}`);
+
+  if (orden.tecnicoId) {
+    const tecnico = usuarios.find(u => u.id === orden.tecnicoId);
+    doc.text(`Técnico asignado: ${tecnico ? tecnico.nombre : orden.tecnicoId}`);
+  } else {
+    doc.text(`Técnico asignado: Sin asignar`);
+  }
 
   if (orden.firma && fs.existsSync(orden.firma)) {
     doc.addPage().fontSize(16).text('Firma del cliente:', { align: 'left' });
