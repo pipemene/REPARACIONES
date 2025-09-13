@@ -17,7 +17,7 @@ app.use(bodyParser.json({ limit: '10mb' }));
 app.use(express.static('public'));
 app.use('/uploads', express.static('uploads'));
 
-// Configuración de Multer para subir evidencias
+// Configuración de Multer para evidencias
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, 'uploads/');
@@ -29,16 +29,34 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
-const dbPath = './data/ordenes.json';
+const dbPathOrdenes = './data/ordenes.json';
+const dbPathUsuarios = './data/usuarios.json';
 
 let ordenes = [];
-if (fs.existsSync(dbPath)) {
-  ordenes = JSON.parse(fs.readFileSync(dbPath));
+if (fs.existsSync(dbPathOrdenes)) {
+  ordenes = JSON.parse(fs.readFileSync(dbPathOrdenes));
 }
 
-function saveDB() {
-  fs.writeFileSync(dbPath, JSON.stringify(ordenes, null, 2));
+let usuarios = [];
+if (fs.existsSync(dbPathUsuarios)) {
+  usuarios = JSON.parse(fs.readFileSync(dbPathUsuarios));
 }
+
+function saveOrdenes() {
+  fs.writeFileSync(dbPathOrdenes, JSON.stringify(ordenes, null, 2));
+}
+
+function saveUsuarios() {
+  fs.writeFileSync(dbPathUsuarios, JSON.stringify(usuarios, null, 2));
+}
+
+// Login de técnicos
+app.post('/api/login', (req, res) => {
+  const { email, password } = req.body;
+  const user = usuarios.find(u => u.email === email && u.password === password);
+  if (!user) return res.status(401).json({ error: 'Credenciales inválidas' });
+  res.json({ mensaje: 'Login exitoso', tecnicoId: user.id, nombre: user.nombre });
+});
 
 // Crear orden
 app.post('/api/ordenes', (req, res) => {
@@ -55,19 +73,38 @@ app.post('/api/ordenes', (req, res) => {
     estado: 'pendiente',
     evidencias: [],
     firma: null,
+    tecnicoId: null,
     fecha: new Date()
   };
   ordenes.push(nuevaOrden);
-  saveDB();
+  saveOrdenes();
   res.json(nuevaOrden);
 });
 
-// Listar órdenes
+// Asignar orden a un técnico
+app.put('/api/ordenes/:id/asignar', (req, res) => {
+  const { id } = req.params;
+  const { tecnicoId } = req.body;
+  const orden = ordenes.find(o => o.id === parseInt(id));
+  if (!orden) return res.status(404).json({ error: 'Orden no encontrada' });
+  orden.tecnicoId = tecnicoId;
+  saveOrdenes();
+  res.json(orden);
+});
+
+// Listar todas las órdenes
 app.get('/api/ordenes', (req, res) => {
   res.json(ordenes);
 });
 
-// Subir evidencias a una orden
+// Listar órdenes de un técnico
+app.get('/api/mis-ordenes/:tecnicoId', (req, res) => {
+  const { tecnicoId } = req.params;
+  const misOrdenes = ordenes.filter(o => o.tecnicoId === parseInt(tecnicoId));
+  res.json(misOrdenes);
+});
+
+// Subir evidencia
 app.post('/api/ordenes/:id/evidencia', upload.single('evidencia'), (req, res) => {
   const { id } = req.params;
   const orden = ordenes.find(o => o.id === parseInt(id));
@@ -76,7 +113,7 @@ app.post('/api/ordenes/:id/evidencia', upload.single('evidencia'), (req, res) =>
   if (!req.file) return res.status(400).json({ error: 'No se subió ningún archivo' });
 
   orden.evidencias.push(req.file.path);
-  saveDB();
+  saveOrdenes();
   res.json({ mensaje: 'Evidencia subida correctamente', archivo: req.file.path });
 });
 
@@ -95,11 +132,11 @@ app.put('/api/ordenes/:id', (req, res) => {
     orden.firma = fileName;
   }
 
-  saveDB();
+  saveOrdenes();
   res.json(orden);
 });
 
-// Generar PDF de la orden con evidencias
+// Generar PDF
 app.get('/api/ordenes/:id/pdf', (req, res) => {
   const { id } = req.params;
   const orden = ordenes.find(o => o.id === parseInt(id));
@@ -118,6 +155,7 @@ app.get('/api/ordenes/:id/pdf', (req, res) => {
   doc.text(`Descripción: ${orden.descripcion}`);
   doc.text(`Estado: ${orden.estado}`);
   doc.text(`Fecha: ${new Date(orden.fecha).toLocaleString()}`);
+  doc.text(`Asignado a técnico ID: ${orden.tecnicoId || 'Sin asignar'}`);
 
   if (orden.firma && fs.existsSync(orden.firma)) {
     doc.addPage().fontSize(16).text('Firma del cliente:', { align: 'left' });
