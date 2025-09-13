@@ -41,7 +41,7 @@
             <div class="col-md-3"><input id="cliente" class="form-control" placeholder="Cliente" required/></div>
             <div class="col-md-3"><input id="telefono" class="form-control" placeholder="Teléfono" required/></div>
             <div class="col-md-3"><textarea id="descripcion" class="form-control" placeholder="Descripción" required></textarea></div>
-            <div class="col-12"><button type="button" class="btn btn-primary" type="submit">Crear</button></div>
+            <div class="col-12"><button id="btnCrearOrden" type="submit" class="btn btn-primary">Crear</button></div>
           </form>
 
           <table class="table table-bordered" id="ordenesTable">
@@ -84,10 +84,24 @@
         <thead><tr><th>ID</th><th>Cliente</th><th>Descripción</th><th>Estado</th><th>Acciones</th></tr></thead>
         <tbody></tbody>
       </table>
+    
+  <div class="card mt-3">
+    <div class="card-body">
+      <div class="d-flex justify-content-between align-items-center">
+        <h6 class="mb-0">Diagnóstico</h6>
+        <div class="d-flex gap-2">
+          <button id="btnProbarAPI" type="button" class="btn btn-outline-secondary btn-sm">Probar API</button>
+          <button id="btnLimpiarLog" type="button" class="btn btn-outline-secondary btn-sm">Limpiar</button>
+        </div>
+      </div>
+      <pre id="debugConsole" class="mt-2" style="max-height:160px; overflow:auto; background:#f8f9fa; padding:8px; border:1px dashed #ccc;"></pre>
     </div>
   </div>
+  </div>
+</div>
 
-  <!-- Modales -->
+<!-- Modales -->
+
   <div class="modal fade" id="editarUsuarioModal" tabindex="-1">
     <div class="modal-dialog"><div class="modal-content">
       <div class="modal-header"><h5 class="modal-title">Editar Usuario</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
@@ -171,6 +185,71 @@
       }
     });
 
+
+  function dlog(...args){
+    const el = document.getElementById('debugConsole'); if(!el) return;
+    const line = args.map(a => (typeof a==='object'? JSON.stringify(a): String(a))).join(' ');
+    el.textContent += (line + "\n");
+    el.scrollTop = el.scrollHeight;
+  }
+
+  document.getElementById('btnLimpiarLog')?.addEventListener('click', () => {
+    const el = document.getElementById('debugConsole'); if (el) el.textContent='';
+  });
+
+  document.getElementById('btnProbarAPI')?.addEventListener('click', async () => {
+    try {
+      const h = await fetch('/api/health'); dlog('Health status:', h.status);
+      const r = await fetch('/api/ordenes'); dlog('Ordenes status:', r.status);
+      const j = await r.json(); dlog('Ordenes length:', (j||[]).length);
+    } catch (e) { dlog('Error Probar API:', e.message||e); }
+  });
+
+  // Reemplazo del submit por handler explícito con logs
+  (function wireCrearOrden(){
+    const form = document.getElementById('crearOrdenForm');
+    if(!form) return;
+    
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('btnCrearOrden');
+    if (btn) { btn.disabled = true; btn.textContent = 'Creando...'; }
+    try {
+      const orden = {
+        codigoInmueble: document.getElementById('codigoInmueble')?.value?.trim(),
+        nombre: document.getElementById('cliente')?.value?.trim(),
+        telefono: document.getElementById('telefono')?.value?.trim(),
+        descripcion: document.getElementById('descripcion')?.value?.trim()
+      };
+      dlog('Intentando crear orden:', orden);
+      if (!orden.codigoInmueble || !orden.nombre || !orden.telefono || !orden.descripcion) {
+        alert('Por favor completa todos los campos.');
+        dlog('Campos faltantes');
+        return;
+      }
+      const resp = await fetch('/api/ordenes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(orden)
+      });
+      const data = await resp.json().catch(() => ({}));
+      dlog('Respuesta crear orden:', resp.status, data);
+      if (!resp.ok) {
+        alert('No se pudo crear la orden: ' + (data.error || resp.statusText));
+        return;
+      }
+      alert('✅ Orden creada (#' + data.id + ')');
+      form.reset();
+      await cargarOrdenes();
+    } catch (err) {
+      dlog('Excepción crear orden:', err?.message || err);
+      alert('Error inesperado creando la orden.');
+    } finally {
+      if (btn) { btn.disabled = false; btn.textContent = 'Crear'; }
+    }
+  });
+})();
+
 </script>
   <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js">document.getElementById('crearOrdenForm')?.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -208,6 +287,71 @@
         if (btn) { btn.disabled = false; btn.textContent = 'Crear'; }
       }
     });
+
+
+  function dlog(...args){
+    const el = document.getElementById('debugConsole'); if(!el) return;
+    const line = args.map(a => (typeof a==='object'? JSON.stringify(a): String(a))).join(' ');
+    el.textContent += (line + "\n");
+    el.scrollTop = el.scrollHeight;
+  }
+
+  document.getElementById('btnLimpiarLog')?.addEventListener('click', () => {
+    const el = document.getElementById('debugConsole'); if (el) el.textContent='';
+  });
+
+  document.getElementById('btnProbarAPI')?.addEventListener('click', async () => {
+    try {
+      const h = await fetch('/api/health'); dlog('Health status:', h.status);
+      const r = await fetch('/api/ordenes'); dlog('Ordenes status:', r.status);
+      const j = await r.json(); dlog('Ordenes length:', (j||[]).length);
+    } catch (e) { dlog('Error Probar API:', e.message||e); }
+  });
+
+  // Reemplazo del submit por handler explícito con logs
+  (function wireCrearOrden(){
+    const form = document.getElementById('crearOrdenForm');
+    if(!form) return;
+    
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('btnCrearOrden');
+    if (btn) { btn.disabled = true; btn.textContent = 'Creando...'; }
+    try {
+      const orden = {
+        codigoInmueble: document.getElementById('codigoInmueble')?.value?.trim(),
+        nombre: document.getElementById('cliente')?.value?.trim(),
+        telefono: document.getElementById('telefono')?.value?.trim(),
+        descripcion: document.getElementById('descripcion')?.value?.trim()
+      };
+      dlog('Intentando crear orden:', orden);
+      if (!orden.codigoInmueble || !orden.nombre || !orden.telefono || !orden.descripcion) {
+        alert('Por favor completa todos los campos.');
+        dlog('Campos faltantes');
+        return;
+      }
+      const resp = await fetch('/api/ordenes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(orden)
+      });
+      const data = await resp.json().catch(() => ({}));
+      dlog('Respuesta crear orden:', resp.status, data);
+      if (!resp.ok) {
+        alert('No se pudo crear la orden: ' + (data.error || resp.statusText));
+        return;
+      }
+      alert('✅ Orden creada (#' + data.id + ')');
+      form.reset();
+      await cargarOrdenes();
+    } catch (err) {
+      dlog('Excepción crear orden:', err?.message || err);
+      alert('Error inesperado creando la orden.');
+    } finally {
+      if (btn) { btn.disabled = false; btn.textContent = 'Crear'; }
+    }
+  });
+})();
 
 </script>
   <script>
@@ -466,6 +610,71 @@ document.getElementById('crearOrdenForm')?.addEventListener('submit', async (e) 
         if (btn) { btn.disabled = false; btn.textContent = 'Crear'; }
       }
     });
+
+
+  function dlog(...args){
+    const el = document.getElementById('debugConsole'); if(!el) return;
+    const line = args.map(a => (typeof a==='object'? JSON.stringify(a): String(a))).join(' ');
+    el.textContent += (line + "\n");
+    el.scrollTop = el.scrollHeight;
+  }
+
+  document.getElementById('btnLimpiarLog')?.addEventListener('click', () => {
+    const el = document.getElementById('debugConsole'); if (el) el.textContent='';
+  });
+
+  document.getElementById('btnProbarAPI')?.addEventListener('click', async () => {
+    try {
+      const h = await fetch('/api/health'); dlog('Health status:', h.status);
+      const r = await fetch('/api/ordenes'); dlog('Ordenes status:', r.status);
+      const j = await r.json(); dlog('Ordenes length:', (j||[]).length);
+    } catch (e) { dlog('Error Probar API:', e.message||e); }
+  });
+
+  // Reemplazo del submit por handler explícito con logs
+  (function wireCrearOrden(){
+    const form = document.getElementById('crearOrdenForm');
+    if(!form) return;
+    
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('btnCrearOrden');
+    if (btn) { btn.disabled = true; btn.textContent = 'Creando...'; }
+    try {
+      const orden = {
+        codigoInmueble: document.getElementById('codigoInmueble')?.value?.trim(),
+        nombre: document.getElementById('cliente')?.value?.trim(),
+        telefono: document.getElementById('telefono')?.value?.trim(),
+        descripcion: document.getElementById('descripcion')?.value?.trim()
+      };
+      dlog('Intentando crear orden:', orden);
+      if (!orden.codigoInmueble || !orden.nombre || !orden.telefono || !orden.descripcion) {
+        alert('Por favor completa todos los campos.');
+        dlog('Campos faltantes');
+        return;
+      }
+      const resp = await fetch('/api/ordenes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(orden)
+      });
+      const data = await resp.json().catch(() => ({}));
+      dlog('Respuesta crear orden:', resp.status, data);
+      if (!resp.ok) {
+        alert('No se pudo crear la orden: ' + (data.error || resp.statusText));
+        return;
+      }
+      alert('✅ Orden creada (#' + data.id + ')');
+      form.reset();
+      await cargarOrdenes();
+    } catch (err) {
+      dlog('Excepción crear orden:', err?.message || err);
+      alert('Error inesperado creando la orden.');
+    } finally {
+      if (btn) { btn.disabled = false; btn.textContent = 'Crear'; }
+    }
+  });
+})();
 
 </script>
 </body>

@@ -82,6 +82,7 @@ app.get('/api/mis-ordenes/:tecnicoId', (req, res) => {
   res.json(ordenes.filter(o => o.tecnicoId === id));
 });
 app.post('/api/ordenes', (req, res) => {
+  console.log('Crear orden payload:', req.body);
   const { codigoInmueble, nombre, telefono, descripcion } = req.body;
   if (!codigoInmueble || !nombre || !telefono || !descripcion) return res.status(400).json({ error: 'Todos los campos son requeridos' });
   const nuevaOrden = {
@@ -172,4 +173,9 @@ app.get('/api/ordenes/:id/pdf', (req, res) => {
   stream.on('finish', () => res.download(filePath));
 });
 
+
+// Health check
+app.get('/api/health', (req, res) => res.json({ ok: true }));
+
 app.listen(PORT, () => console.log(`Servidor corriendo en puerto ${PORT}`));
+
