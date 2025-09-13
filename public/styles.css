@@ -53,3 +53,26 @@ canvas{background:#fff;border-radius:10px;border:1px solid var(--border)}
   display: inline-block;
   text-align: left;
 }
+
+
+/* --- Pretty nav + softer UI --- */
+.topbar{display:flex;align-items:center;gap:16px;padding:14px 18px;background:rgba(0,0,0,.85);backdrop-filter: blur(8px);
+  position:sticky;top:0;z-index:20;border-bottom:1px solid rgba(255,255,255,.08)}
+.topbar img{height:34px}
+.topbar .sp{flex:1}
+.topbar .btn{padding:10px 14px;background:#1d4ed8;color:#fff;border:0;border-radius:999px;cursor:pointer}
+
+.navbar{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0}
+.nav-item{display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:999px;border:1px solid #e5e7eb;background:#fff;
+  color:#1f2937;cursor:pointer;transition:.2s transform,.2s box-shadow}
+.nav-item:hover{transform:translateY(-1px);box-shadow:0 8px 20px rgba(0,0,0,.06)}
+.nav-item.active{background:#1d4ed8;border-color:#1d4ed8;color:#fff}
+.nav-icon{width:18px;height:18px;display:inline-block;border-radius:4px;background:currentColor;opacity:.85}
+
+.card{background:#ffffff;border:1px solid #e5e7eb;border-radius:18px;padding:18px;box-shadow:0 10px 24px rgba(0,0,0,.05)}
+h3{margin-top:6px}
+
+.btn-primary{padding:10px 14px;border:0;border-radius:12px;background:#1d4ed8;color:#fff;font-weight:600;cursor:pointer}
+.btn-ghost{padding:10px 14px;border-radius:12px;border:1px solid #e5e7eb;background:#fff;color:#111827;cursor:pointer}
+input,select,textarea{border-radius:12px}
+table{border-radius:12px;overflow:hidden}
