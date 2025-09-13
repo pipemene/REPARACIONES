@@ -76,3 +76,11 @@ h3{margin-top:6px}
 .btn-ghost{padding:10px 14px;border-radius:12px;border:1px solid #e5e7eb;background:#fff;color:#111827;cursor:pointer}
 input,select,textarea{border-radius:12px}
 table{border-radius:12px;overflow:hidden}
+
+
+details#menuTec{border:1px solid #e5e7eb;border-radius:12px;padding:8px 12px;background:#fff}
+details#menuTec summary{cursor:pointer;list-style:none}
+details#menuTec[open]{box-shadow:0 8px 20px rgba(0,0,0,.06)}
+#tecList .chip{padding:8px 12px;border:1px solid #e5e7eb;border-radius:999px;background:#f9fafb;cursor:pointer}
+#tecList .chip.active{background:#1d4ed8;border-color:#1d4ed8;color:#fff}
+#selOrden{min-width:260px}

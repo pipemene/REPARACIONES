@@ -158,6 +158,68 @@ async function listUsers(){
   }
 }
 
+
+// --- Admin helpers: load orders & technicians ---
+async function loadOrdenesToSelect(){
+  const sel = document.getElementById('selOrden'); if(!sel) return;
+  sel.innerHTML = '<option value="">-- Selecciona una orden --</option>';
+  try{
+    const r = await fetch('/api/ordenes', { cache:'no-store' });
+    const j = await r.json();
+    if(Array.isArray(j)){
+      j.forEach(o=>{
+        const label = `#${o.id} · ${o.codigoInmueble||'-'} · ${o.nombre||''}`;
+        const opt = document.createElement('option');
+        opt.value = o.id; opt.textContent = label;
+        sel.appendChild(opt);
+      });
+    }
+  }catch(e){ /* ignore */ }
+}
+
+async function loadTecnicosMenu(){
+  const c = document.getElementById('tecList'); if(!c) return;
+  c.innerHTML = '';
+  try{
+    const r = await fetch('/api/usuarios', { cache:'no-store' });
+    const j = await r.json();
+    const tecs = (Array.isArray(j)? j: []).filter(u=>u.rol==='tecnico');
+    if(tecs.length===0){ c.innerHTML = '<div class="notice">No hay técnicos registrados.</div>'; return; }
+    tecs.forEach(u=>{
+      const chip = document.createElement('div');
+      chip.className = 'chip'; chip.textContent = u.usuario; chip.dataset.id = u.id;
+      chip.onclick = ()=>{
+        document.querySelectorAll('#tecList .chip').forEach(x=>x.classList.remove('active'));
+        chip.classList.add('active');
+        document.getElementById('selTecId').value = u.id;
+        document.getElementById('selTecLabel').textContent = 'Técnico: '+u.usuario;
+      };
+      c.appendChild(chip);
+    });
+  }catch(e){ c.innerHTML = '<div class="notice">Error cargando técnicos</div>'; }
+}
+
+async function refreshOrdenes(){
+  await listOrdenes();
+  await loadOrdenesToSelect();
+}
+
+async function asignarSel(){
+  const oid = document.getElementById('selOrden').value;
+  const tecId = document.getElementById('selTecId').value;
+  if(!oid){ alert('Selecciona una orden'); return; }
+  if(!tecId){ alert('Selecciona un técnico'); return; }
+  const r = await fetch('/api/ordenes/'+oid+'/asignar',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({tecnicoId:parseInt(tecId),usuario:sess.usuario})});
+  const j = await r.json(); document.getElementById('ordenesOut').textContent = JSON.stringify(j,null,2);
+  await refreshOrdenes();
+}
+
+function descargarPDFSel(){
+  const oid = document.getElementById('selOrden').value;
+  if(!oid){ alert('Selecciona una orden'); return; }
+  window.open('/api/ordenes/'+oid+'/pdf','_blank');
+}
+
 // Usuarios CRUD
 async function createUser(){
   const usuario = document.getElementById('uUsuario').value;
@@ -270,12 +332,16 @@ async function setup(){
         document.getElementById('uRolEdit').innerHTML += roles.map(r=>`<option>${r}</option>`).join('');
       }catch(e){ /* no crítico */ }
       await listUsers();
+      await refreshOrdenes();
+      await loadTecnicosMenu();
       activateTab('tab-usuarios');
     } else if(sess.rol==='admin'){
       tabs.appendChild(prettyBtn('tab-ordenes','Órdenes', true));
       showEl('tab-ordenes', true);
       showEl('ordenesAdminControls', true);
       showEl('asignControls', true);
+      await refreshOrdenes();
+      await loadTecnicosMenu();
       activateTab('tab-ordenes');
     } else {
       tabs.appendChild(prettyBtn('tab-ordenes','Mis Órdenes', true));
