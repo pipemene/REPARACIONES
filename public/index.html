@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestor de Órdenes</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    .form { margin-bottom: 20px; }
+    canvas { border: 1px solid #000; }
+  </style>
+</head>
+<body>
+  <h1>Crear Orden de Servicio</h1>
+  <form id="ordenForm" class="form">
+    <input type="text" id="codigoInmueble" placeholder="Código inmueble" required><br><br>
+    <input type="text" id="nombre" placeholder="Nombre cliente" required><br><br>
+    <input type="text" id="telefono" placeholder="Teléfono" required><br><br>
+    <textarea id="descripcion" placeholder="Descripción del daño" required></textarea><br><br>
+    <button type="submit">Crear Orden</button>
+  </form>
+
+  <h2>Firma del Cliente</h2>
+  <canvas id="firmaPad" width="300" height="150"></canvas><br>
+  <button id="guardarFirma">Guardar Firma en Orden 1</button>
+
+  <h2>Subir Evidencia (foto)</h2>
+  <input type="file" id="evidencia" accept="image/*" capture="camera"><br>
+  <button id="subirEvidencia">Subir Evidencia a Orden 1</button>
+
+  <h2>Órdenes Registradas</h2>
+  <button id="verOrdenes">Ver Órdenes</button>
+  <pre id="listaOrdenes"></pre>
+
+  <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
+  <script>
+    const form = document.getElementById('ordenForm');
+    const listaOrdenes = document.getElementById('listaOrdenes');
+    const canvas = document.getElementById('firmaPad');
+    const signaturePad = new SignaturePad(canvas);
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const orden = {
+        codigoInmueble: document.getElementById('codigoInmueble').value,
+        nombre: document.getElementById('nombre').value,
+        telefono: document.getElementById('telefono').value,
+        descripcion: document.getElementById('descripcion').value
+      };
+      const res = await fetch('/api/ordenes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(orden)
+      });
+      const data = await res.json();
+      alert('Orden creada con ID: ' + data.id);
+    });
+
+    document.getElementById('verOrdenes').addEventListener('click', async () => {
+      const res = await fetch('/api/ordenes');
+      const data = await res.json();
+      listaOrdenes.textContent = JSON.stringify(data, null, 2);
+    });
+
+    document.getElementById('guardarFirma').addEventListener('click', async () => {
+      if (signaturePad.isEmpty()) {
+        alert('Por favor firma primero');
+        return;
+      }
+      const dataUrl = signaturePad.toDataURL();
+      const res = await fetch('/api/ordenes/1', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ firma: dataUrl })
+      });
+      const data = await res.json();
+      alert('Firma guardada en la orden 1');
+    });
+
+    document.getElementById('subirEvidencia').addEventListener('click', async () => {
+      const input = document.getElementById('evidencia');
+      if (!input.files.length) {
+        alert('Selecciona una foto primero');
+        return;
+      }
+      const formData = new FormData();
+      formData.append('evidencia', input.files[0]);
+      const res = await fetch('/api/ordenes/1/evidencia', {
+        method: 'POST',
+        body: formData
+      });
+      const data = await res.json();
+      alert('Evidencia subida: ' + data.archivo);
+    });
+  </script>
+</body>
+</html>

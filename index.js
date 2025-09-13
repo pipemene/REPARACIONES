@@ -4,6 +4,8 @@ import cors from 'cors';
 import fs from 'fs';
 import dotenv from 'dotenv';
 import PDFDocument from 'pdfkit';
+import multer from 'multer';
+import path from 'path';
 
 dotenv.config();
 
@@ -11,23 +13,34 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(cors());
-app.use(bodyParser.json({ limit: '10mb' })); // Para aceptar firmas base64
+app.use(bodyParser.json({ limit: '10mb' }));
+app.use(express.static('public'));
+app.use('/uploads', express.static('uploads'));
 
-// Simulación de base de datos (JSON en /data)
+// Configuración de Multer para subir evidencias
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'uploads/');
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+  }
+});
+const upload = multer({ storage: storage });
+
 const dbPath = './data/ordenes.json';
 
-// Cargar base inicial
 let ordenes = [];
 if (fs.existsSync(dbPath)) {
   ordenes = JSON.parse(fs.readFileSync(dbPath));
 }
 
-// Guardar cambios en el archivo
 function saveDB() {
   fs.writeFileSync(dbPath, JSON.stringify(ordenes, null, 2));
 }
 
-// Crear nueva orden de servicio
+// Crear orden
 app.post('/api/ordenes', (req, res) => {
   const { codigoInmueble, nombre, telefono, descripcion } = req.body;
   if (!codigoInmueble || !nombre || !telefono || !descripcion) {
@@ -49,20 +62,32 @@ app.post('/api/ordenes', (req, res) => {
   res.json(nuevaOrden);
 });
 
-// Listar todas las órdenes
+// Listar órdenes
 app.get('/api/ordenes', (req, res) => {
   res.json(ordenes);
 });
 
-// Actualizar orden (estado, evidencia, firma base64)
+// Subir evidencias a una orden
+app.post('/api/ordenes/:id/evidencia', upload.single('evidencia'), (req, res) => {
+  const { id } = req.params;
+  const orden = ordenes.find(o => o.id === parseInt(id));
+  if (!orden) return res.status(404).json({ error: 'Orden no encontrada' });
+
+  if (!req.file) return res.status(400).json({ error: 'No se subió ningún archivo' });
+
+  orden.evidencias.push(req.file.path);
+  saveDB();
+  res.json({ mensaje: 'Evidencia subida correctamente', archivo: req.file.path });
+});
+
+// Actualizar orden (estado, firma base64)
 app.put('/api/ordenes/:id', (req, res) => {
   const { id } = req.params;
   const orden = ordenes.find(o => o.id === parseInt(id));
   if (!orden) return res.status(404).json({ error: 'Orden no encontrada' });
 
-  const { estado, evidencia, firma } = req.body;
+  const { estado, firma } = req.body;
   if (estado) orden.estado = estado;
-  if (evidencia) orden.evidencias.push(evidencia);
   if (firma) {
     const fileName = `uploads/firma_${id}.png`;
     const base64Data = firma.replace(/^data:image\/png;base64,/, '');
@@ -74,7 +99,7 @@ app.put('/api/ordenes/:id', (req, res) => {
   res.json(orden);
 });
 
-// Generar PDF de la orden
+// Generar PDF de la orden con evidencias
 app.get('/api/ordenes/:id/pdf', (req, res) => {
   const { id } = req.params;
   const orden = ordenes.find(o => o.id === parseInt(id));
@@ -102,7 +127,16 @@ app.get('/api/ordenes/:id/pdf', (req, res) => {
   if (orden.evidencias.length > 0) {
     doc.addPage().fontSize(16).text('Evidencias:', { align: 'left' });
     orden.evidencias.forEach((ev, i) => {
-      doc.text(`- ${ev}`);
+      if (fs.existsSync(ev)) {
+        try {
+          doc.image(ev, { fit: [250, 250] });
+          doc.moveDown();
+        } catch (err) {
+          doc.text(`Archivo: ${ev}`);
+        }
+      } else {
+        doc.text(`Archivo no encontrado: ${ev}`);
+      }
     });
   }
 
