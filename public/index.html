@@ -14,133 +14,125 @@
     <div id="loginCard" class="card p-4 shadow-sm">
       <h3 class="mb-3">Login</h3>
       <form id="loginForm">
-        <div class="mb-3">
-          <input type="text" id="usuario" class="form-control" placeholder="Usuario" required/>
-        </div>
-        <div class="mb-3">
-          <input type="password" id="password" class="form-control" placeholder="Contraseña" required/>
-        </div>
+        <div class="mb-3"><input type="text" id="usuario" class="form-control" placeholder="Usuario" required/></div>
+        <div class="mb-3"><input type="password" id="password" class="form-control" placeholder="Contraseña" required/></div>
         <button type="submit" class="btn btn-primary w-100">Ingresar</button>
       </form>
     </div>
 
-    <!-- Dashboard Superadmin -->
-    <div id="dashboardSuperadmin" style="display:none;">
+    <!-- SUPERADMIN / ADMIN Dashboard -->
+    <div id="dashboardAdmin" style="display:none;">
       <div class="d-flex justify-content-between align-items-center mb-4">
-        <h3>Panel Superadmin - <span id="superadminNombre"></span> 🔑</h3>
-        <button id="logoutBtnSuperadmin" class="btn btn-danger btn-sm">Cerrar sesión</button>
+        <h3><span id="rolBadge"></span> Panel Administración - <span id="adminNombre"></span></h3>
+        <button id="logoutBtnAdmin" class="btn btn-danger btn-sm">Cerrar sesión</button>
       </div>
 
-      <!-- Tabs -->
-      <ul class="nav nav-tabs" id="superadminTabs">
-        <li class="nav-item">
-          <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#ordenesTab">Órdenes</button>
-        </li>
-        <li class="nav-item">
-          <button class="nav-link" data-bs-toggle="tab" data-bs-target="#usuariosTab">Usuarios</button>
-        </li>
+      <ul class="nav nav-tabs">
+        <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tabOrdenes">Órdenes</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabUsuarios">Usuarios</button></li>
       </ul>
 
       <div class="tab-content mt-3">
-        <!-- Tab Órdenes -->
-        <div class="tab-pane fade show active" id="ordenesTab">
-          <h4>Crear Orden</h4>
-          <form id="crearOrdenForm" class="row g-3 mb-4">
-            <div class="col-md-3"><input type="text" id="codigoInmueble" class="form-control" placeholder="Código inmueble" required/></div>
-            <div class="col-md-3"><input type="text" id="cliente" class="form-control" placeholder="Nombre cliente" required/></div>
-            <div class="col-md-3"><input type="text" id="telefono" class="form-control" placeholder="Teléfono" required/></div>
+        <!-- Órdenes -->
+        <div class="tab-pane fade show active" id="tabOrdenes">
+          <h5>Crear Orden</h5>
+          <form id="crearOrdenForm" class="row g-3 mb-3">
+            <div class="col-md-3"><input id="codigoInmueble" class="form-control" placeholder="Código inmueble" required/></div>
+            <div class="col-md-3"><input id="cliente" class="form-control" placeholder="Cliente" required/></div>
+            <div class="col-md-3"><input id="telefono" class="form-control" placeholder="Teléfono" required/></div>
             <div class="col-md-3"><textarea id="descripcion" class="form-control" placeholder="Descripción" required></textarea></div>
-            <div class="col-12"><button type="submit" class="btn btn-primary">Crear Orden</button></div>
+            <div class="col-12"><button class="btn btn-primary">Crear</button></div>
           </form>
 
-          <h4>Órdenes</h4>
           <table class="table table-bordered" id="ordenesTable">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Cliente</th>
-                <th>Descripción</th>
-                <th>Estado</th>
-                <th>Técnico</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
+            <thead><tr><th>ID</th><th>Cliente</th><th>Descripción</th><th>Estado</th><th>Técnico</th><th>Acciones</th></tr></thead>
             <tbody></tbody>
           </table>
         </div>
 
-        <!-- Tab Usuarios -->
-        <div class="tab-pane fade" id="usuariosTab">
-          <h4>Gestión de Usuarios</h4>
+        <!-- Usuarios -->
+        <div class="tab-pane fade" id="tabUsuarios">
+          <h5>Gestión de Usuarios</h5>
           <form id="crearUsuarioForm" class="row g-3 mb-3">
-            <div class="col-md-3"><input type="text" id="nuevoUsuario" class="form-control" placeholder="Usuario" required/></div>
-            <div class="col-md-3"><input type="password" id="nuevoPassword" class="form-control" placeholder="Contraseña" required/></div>
+            <div class="col-md-3"><input id="nuevoUsuario" class="form-control" placeholder="Usuario" required/></div>
+            <div class="col-md-3"><input id="nuevoPassword" type="password" class="form-control" placeholder="Contraseña" required/></div>
             <div class="col-md-3">
               <select id="nuevoRol" class="form-select">
                 <option value="tecnico">Técnico</option>
                 <option value="admin">Admin</option>
               </select>
             </div>
-            <div class="col-md-3"><button type="submit" class="btn btn-success w-100">Crear Usuario</button></div>
+            <div class="col-md-3"><button class="btn btn-success w-100">Crear Usuario</button></div>
           </form>
 
           <table class="table table-bordered" id="usuariosTable">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Usuario</th>
-                <th>Rol</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
+            <thead><tr><th>ID</th><th>Usuario</th><th>Rol</th><th>Acciones</th></tr></thead>
             <tbody></tbody>
           </table>
         </div>
       </div>
     </div>
+
+    <!-- TÉCNICO Dashboard -->
+    <div id="dashboardTecnico" style="display:none;">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3>Panel Técnico - <span id="tecnicoNombre"></span></h3>
+        <button id="logoutBtnTec" class="btn btn-danger btn-sm">Cerrar sesión</button>
+      </div>
+
+      <table class="table table-striped" id="misOrdenesTable">
+        <thead><tr><th>ID</th><th>Cliente</th><th>Descripción</th><th>Estado</th><th>Acciones</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
   </div>
 
-  <!-- Modal Editar Usuario -->
+  <!-- Modales -->
   <div class="modal fade" id="editarUsuarioModal" tabindex="-1">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header"><h5 class="modal-title">Editar Usuario</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
-        <div class="modal-body">
-          <input type="hidden" id="editarId"/>
-          <div class="mb-3"><label class="form-label">Usuario</label><input type="text" id="editarUsuario" class="form-control"/></div>
-          <div class="mb-3"><label class="form-label">Nueva Contraseña (opcional)</label><input type="password" id="editarPassword" class="form-control"/></div>
-          <div class="mb-3">
-            <label class="form-label">Rol</label>
-            <select id="editarRol" class="form-select">
-              <option value="tecnico">Técnico</option>
-              <option value="admin">Admin</option>
-            </select>
-          </div>
-          <button class="btn btn-primary w-100" id="guardarCambiosBtn">Guardar Cambios</button>
+    <div class="modal-dialog"><div class="modal-content">
+      <div class="modal-header"><h5 class="modal-title">Editar Usuario</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body">
+        <input type="hidden" id="editarId"/>
+        <div class="mb-2"><label class="form-label">Usuario</label><input id="editarUsuario" class="form-control"/></div>
+        <div class="mb-2"><label class="form-label">Nueva Contraseña (opcional)</label><input id="editarPassword" type="password" class="form-control"/></div>
+        <div class="mb-2"><label class="form-label">Rol</label>
+          <select id="editarRol" class="form-select"><option value="tecnico">Técnico</option><option value="admin">Admin</option></select>
         </div>
+        <button id="guardarCambiosBtn" class="btn btn-primary w-100">Guardar</button>
       </div>
-    </div>
+    </div></div>
   </div>
 
-  <!-- Modal Historial -->
-  <div class="modal fade" id="historialModal" tabindex="-1">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header"><h5 class="modal-title">Historial de Cambios</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
-        <div class="modal-body"><ul id="historialList" class="list-group"></ul></div>
+  <div class="modal fade" id="evidenciaModal" tabindex="-1">
+    <div class="modal-dialog"><div class="modal-content">
+      <div class="modal-header"><h5 class="modal-title">Subir Evidencia</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body">
+        <input type="file" id="evidenciaFile" class="form-control" accept="image/*" capture="environment"/>
+        <button id="guardarEvidenciaBtn" class="btn btn-success w-100 mt-2">Guardar Evidencia</button>
       </div>
-    </div>
+    </div></div>
+  </div>
+
+  <div class="modal fade" id="historialModal" tabindex="-1">
+    <div class="modal-dialog"><div class="modal-content">
+      <div class="modal-header"><h5 class="modal-title">Historial</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body"><ul id="historialList" class="list-group"></ul></div>
+    </div></div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script>
     let usuarioActivo = null;
     let usuariosGlobal = [];
+    let ordenSeleccionada = null;
 
+    // ---- Helpers ----
+    async function fetchJSON(url, opts={}) { const r = await fetch(url, opts); return r.json(); }
+
+    // ---- Admin / Superadmin ----
     async function cargarUsuarios() {
-      const res = await fetch('/api/usuarios');
-      usuariosGlobal = await res.json();
-      const tbody = document.querySelector('#usuariosTable tbody');
+      usuariosGlobal = await fetchJSON('/api/usuarios');
+      const tbody = document.querySelector('#usuariosTable tbody'); if (!tbody) return;
       tbody.innerHTML = '';
       usuariosGlobal.forEach(u => {
         const tr = document.createElement('tr');
@@ -158,7 +150,7 @@
 
     async function eliminarUsuario(id) {
       await fetch('/api/usuarios/' + id, { method: 'DELETE' });
-      await cargarUsuarios();
+      await cargarUsuarios(); await cargarOrdenes();
     }
 
     function abrirEditar(id, usuario, rol) {
@@ -169,40 +161,30 @@
       new bootstrap.Modal(document.getElementById('editarUsuarioModal')).show();
     }
 
-    document.getElementById('guardarCambiosBtn').addEventListener('click', async () => {
+    document.getElementById('guardarCambiosBtn')?.addEventListener('click', async () => {
       const id = document.getElementById('editarId').value;
       const usuario = document.getElementById('editarUsuario').value;
       const password = document.getElementById('editarPassword').value;
       const rol = document.getElementById('editarRol').value;
       await fetch('/api/usuarios/' + id, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ usuario, password, rol })
+        method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ usuario, password, rol })
       });
       bootstrap.Modal.getInstance(document.getElementById('editarUsuarioModal')).hide();
-      await cargarUsuarios();
-      await cargarOrdenes(); // refresh tech names in table
+      await cargarUsuarios(); await cargarOrdenes();
     });
 
-    document.getElementById('crearUsuarioForm').addEventListener('submit', async (e) => {
+    document.getElementById('crearUsuarioForm')?.addEventListener('submit', async (e) => {
       e.preventDefault();
       const usuario = document.getElementById('nuevoUsuario').value;
       const password = document.getElementById('nuevoPassword').value;
       const rol = document.getElementById('nuevoRol').value;
-      await fetch('/api/usuarios', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ usuario, password, rol })
-      });
-      e.target.reset();
-      await cargarUsuarios();
-      await cargarOrdenes();
+      await fetch('/api/usuarios', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ usuario, password, rol }) });
+      e.target.reset(); await cargarUsuarios(); await cargarOrdenes();
     });
 
     async function cargarOrdenes() {
-      const res = await fetch('/api/ordenes');
-      const ordenes = await res.json();
-      const tbody = document.querySelector('#ordenesTable tbody');
+      const ordenes = await fetchJSON('/api/ordenes');
+      const tbody = document.querySelector('#ordenesTable tbody'); if (!tbody) return;
       tbody.innerHTML = '';
       ordenes.forEach(o => {
         const tecnico = usuariosGlobal.find(u => u.id === o.tecnicoId);
@@ -233,8 +215,7 @@
     async function asignarTecnico(id, tecnicoId) {
       if (!tecnicoId) return;
       await fetch('/api/ordenes/' + id + '/asignar', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        method: 'PUT', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ tecnicoId, usuario: usuarioActivo.usuario })
       });
       await cargarOrdenes();
@@ -242,57 +223,23 @@
 
     async function cambiarEstado(id, estado) {
       await fetch('/api/ordenes/' + id, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        method: 'PUT', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ estado, usuario: usuarioActivo.usuario })
       });
     }
 
     async function verHistorial(id) {
-      const res = await fetch('/api/ordenes/' + id + '/historial');
-      const historial = await res.json();
+      const historial = await fetchJSON('/api/ordenes/' + id + '/historial');
       const list = document.getElementById('historialList');
       list.innerHTML = '';
       historial.forEach(h => {
-        const li = document.createElement('li');
-        li.className = 'list-group-item';
-        li.textContent = `${h.fecha} - ${h.usuario}: ${h.accion}`;
-        list.appendChild(li);
+        const li = document.createElement('li'); li.className = 'list-group-item';
+        li.textContent = `${h.fecha} - ${h.usuario}: ${h.accion}`; list.appendChild(li);
       });
       new bootstrap.Modal(document.getElementById('historialModal')).show();
     }
 
-    // Login
-    document.getElementById('loginForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const usuario = document.getElementById('usuario').value;
-      const password = document.getElementById('password').value;
-      const res = await fetch('/api/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ usuario, password })
-      });
-      const data = await res.json();
-      if (data.usuario && data.rol === 'superadmin') {
-        usuarioActivo = data;
-        document.getElementById('loginCard').style.display = 'none';
-        document.getElementById('dashboardSuperadmin').style.display = 'block';
-        document.getElementById('superadminNombre').textContent = data.usuario;
-        await cargarUsuarios();
-        await cargarOrdenes();
-      } else {
-        alert('Acceso restringido');
-      }
-    });
-
-    document.getElementById('logoutBtnSuperadmin').addEventListener('click', () => {
-      usuarioActivo = null;
-      document.getElementById('dashboardSuperadmin').style.display = 'none';
-      document.getElementById('loginCard').style.display = 'block';
-    });
-
-    // Create order
-    document.getElementById('crearOrdenForm').addEventListener('submit', async (e) => {
+    document.getElementById('crearOrdenForm')?.addEventListener('submit', async (e) => {
       e.preventDefault();
       const orden = {
         codigoInmueble: document.getElementById('codigoInmueble').value,
@@ -300,14 +247,81 @@
         telefono: document.getElementById('telefono').value,
         descripcion: document.getElementById('descripcion').value
       };
-      await fetch('/api/ordenes', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(orden)
-      });
-      e.target.reset();
-      await cargarOrdenes();
+      await fetch('/api/ordenes', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(orden) });
+      e.target.reset(); await cargarOrdenes();
     });
+
+    // ---- Técnico ----
+    async function cargarMisOrdenes() {
+      const tbody = document.querySelector('#misOrdenesTable tbody'); if (!tbody) return;
+      const mis = await fetchJSON('/api/mis-ordenes/' + usuarioActivo.id);
+      tbody.innerHTML = '';
+      mis.forEach(o => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${o.id}</td>
+          <td>${o.nombre}</td>
+          <td>${o.descripcion}</td>
+          <td>${o.estado}</td>
+          <td>
+            <a class="btn btn-secondary btn-sm" href="/api/ordenes/${o.id}/pdf" target="_blank">PDF</a>
+            <button class="btn btn-warning btn-sm" onclick="abrirEvidencia(${o.id})">Evidencia</button>
+            <button class="btn btn-success btn-sm" onclick="finalizarOrden(${o.id})">Finalizar</button>
+          </td>`;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function abrirEvidencia(id) {
+      ordenSeleccionada = id;
+      new bootstrap.Modal(document.getElementById('evidenciaModal')).show();
+    }
+
+    document.getElementById('guardarEvidenciaBtn')?.addEventListener('click', async () => {
+      const input = document.getElementById('evidenciaFile');
+      if (!input.files.length) { alert('Selecciona una imagen'); return; }
+      const formData = new FormData();
+      formData.append('evidencia', input.files[0]);
+      formData.append('usuario', usuarioActivo.usuario);
+      await fetch('/api/ordenes/' + ordenSeleccionada + '/evidencia', { method: 'POST', body: formData });
+      bootstrap.Modal.getInstance(document.getElementById('evidenciaModal')).hide();
+      await cargarMisOrdenes();
+    });
+
+    async function finalizarOrden(id) {
+      await fetch('/api/ordenes/' + id, {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ estado: 'finalizada', usuario: usuarioActivo.usuario })
+      });
+      await cargarMisOrdenes();
+    }
+
+    // ---- Login Routing ----
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const usuario = document.getElementById('usuario').value;
+      const password = document.getElementById('password').value;
+      const r = await fetch('/api/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ usuario, password }) });
+      const data = await r.json();
+      if (!data.usuario) { alert(data.error || 'Error de acceso'); return; }
+      usuarioActivo = data;
+      document.getElementById('loginCard').style.display = 'none';
+
+      if (data.rol === 'tecnico') {
+        document.getElementById('dashboardTecnico').style.display = 'block';
+        document.getElementById('tecnicoNombre').textContent = data.usuario;
+        await cargarMisOrdenes();
+      } else { // admin o superadmin
+        document.getElementById('dashboardAdmin').style.display = 'block';
+        document.getElementById('adminNombre').textContent = data.usuario;
+        document.getElementById('rolBadge').textContent = data.rol === 'superadmin' ? '🔑 Superadmin' : '👤 Admin';
+        await cargarUsuarios();
+        await cargarOrdenes();
+      }
+    });
+
+    document.getElementById('logoutBtnAdmin').addEventListener('click', () => { location.reload(); });
+    document.getElementById('logoutBtnTec').addEventListener('click', () => { location.reload(); });
   </script>
 </body>
 </html>
