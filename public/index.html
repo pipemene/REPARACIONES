@@ -16,7 +16,7 @@
       <form id="loginForm">
         <div class="mb-3"><input type="text" id="usuario" class="form-control" placeholder="Usuario" required/></div>
         <div class="mb-3"><input type="password" id="password" class="form-control" placeholder="Contraseña" required/></div>
-        <button type="submit" class="btn btn-primary w-100">Ingresar</button>
+        <button type="submit" class="btn btn-primary w-100" type="submit">Ingresar</button>
       </form>
     </div>
 
@@ -41,7 +41,7 @@
             <div class="col-md-3"><input id="cliente" class="form-control" placeholder="Cliente" required/></div>
             <div class="col-md-3"><input id="telefono" class="form-control" placeholder="Teléfono" required/></div>
             <div class="col-md-3"><textarea id="descripcion" class="form-control" placeholder="Descripción" required></textarea></div>
-            <div class="col-12"><button class="btn btn-primary">Crear</button></div>
+            <div class="col-12"><button type="button" class="btn btn-primary" type="submit">Crear</button></div>
           </form>
 
           <table class="table table-bordered" id="ordenesTable">
@@ -62,7 +62,7 @@
                 <option value="admin">Admin</option>
               </select>
             </div>
-            <div class="col-md-3"><button class="btn btn-success w-100">Crear Usuario</button></div>
+            <div class="col-md-3"><button type="button" class="btn btn-success w-100" type="submit">Crear Usuario</button></div>
           </form>
 
           <table class="table table-bordered" id="usuariosTable">
@@ -98,7 +98,7 @@
         <div class="mb-2"><label class="form-label">Rol</label>
           <select id="editarRol" class="form-select"><option value="tecnico">Técnico</option><option value="admin">Admin</option></select>
         </div>
-        <button id="guardarCambiosBtn" class="btn btn-primary w-100">Guardar</button>
+        <button id="guardarCambiosBtn" type="button" class="btn btn-primary w-100">Guardar</button>
       </div>
     </div></div>
   </div>
@@ -108,7 +108,7 @@
       <div class="modal-header"><h5 class="modal-title">Subir Evidencia</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
       <div class="modal-body">
         <input type="file" id="evidenciaFile" class="form-control" accept="image/*" capture="environment"/>
-        <button id="guardarEvidenciaBtn" class="btn btn-success w-100 mt-2">Guardar Evidencia</button>
+        <button id="guardarEvidenciaBtn" type="button" class="btn btn-success w-100 mt-2">Guardar Evidencia</button>
       </div>
     </div></div>
   </div>
@@ -127,8 +127,8 @@
       <div class="modal-body text-center">
         <canvas id="firmaPad" width="320" height="180" style="border:1px solid #000; touch-action: none;"></canvas>
         <div class="d-flex gap-2 mt-2">
-          <button id="limpiarFirmaBtn" class="btn btn-secondary w-50">Limpiar</button>
-          <button id="guardarFirmaBtn" class="btn btn-primary w-50">Guardar Firma</button>
+          <button id="limpiarFirmaBtn" type="button" class="btn btn-secondary w-50">Limpiar</button>
+          <button id="guardarFirmaBtn" type="button" class="btn btn-primary w-50">Guardar Firma</button>
         </div>
       </div>
     </div></div>
@@ -154,8 +154,8 @@
         tr.innerHTML = `
           <td>${u.id}</td><td>${u.usuario}</td><td>${u.rol}</td>
           <td>
-            <button class="btn btn-warning btn-sm" onclick="abrirEditar(${u.id}, '${u.usuario}', '${u.rol}')">Editar</button>
-            <button class="btn btn-danger btn-sm" onclick="eliminarUsuario(${u.id})">Eliminar</button>
+            <button type="button" class="btn btn-warning btn-sm" onclick="abrirEditar(${u.id}, '${u.usuario}', '${u.rol}')">Editar</button>
+            <button type="button" class="btn btn-danger btn-sm" onclick="eliminarUsuario(${u.id})">Eliminar</button>
           </td>`;
         tbody.appendChild(tr);
       });
@@ -217,7 +217,7 @@
           </td>
           <td>
             <a class="btn btn-secondary btn-sm" href="/api/ordenes/${o.id}/pdf" target="_blank">PDF</a>
-            <button class="btn btn-info btn-sm" onclick="verHistorial(${o.id})">Historial</button>
+            <button type="button" class="btn btn-info btn-sm" onclick="verHistorial(${o.id})">Historial</button>
           </td>`;
         tbody.appendChild(tr);
       });
@@ -258,9 +258,9 @@
           <td>${o.estado}</td>
           <td class="d-flex gap-1">
             <a class="btn btn-secondary btn-sm" href="/api/ordenes/${o.id}/pdf" target="_blank">PDF</a>
-            <button class="btn btn-warning btn-sm" onclick="abrirEvidencia(${o.id})">Evidencia</button>
-            <button class="btn btn-dark btn-sm" onclick="abrirFirma(${o.id})">Firma</button>
-            <button class="btn btn-success btn-sm" onclick="finalizarOrden(${o.id})">Finalizar</button>
+            <button type="button" class="btn btn-warning btn-sm" onclick="abrirEvidencia(${o.id})">Evidencia</button>
+            <button type="button" class="btn btn-dark btn-sm" onclick="abrirFirma(${o.id})">Firma</button>
+            <button type="button" class="btn btn-success btn-sm" onclick="finalizarOrden(${o.id})">Finalizar</button>
           </td>`;
         tbody.appendChild(tr);
       });
@@ -312,7 +312,7 @@
       const r = await fetch('/api/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ usuario, password }) });
       const data = await r.json();
       if (!data.usuario) { alert(data.error || 'Error de acceso'); return; }
-      usuarioActivo = data;
+      usuarioActivo = data; setSession(data);
       document.getElementById('loginCard').style.display = 'none';
 
       if (data.rol === 'tecnico') {
@@ -328,8 +328,34 @@
       }
     });
 
-    document.getElementById('logoutBtnAdmin').addEventListener('click', () => { location.reload(); });
-    document.getElementById('logoutBtnTec').addEventListener('click', () => { location.reload(); });
-  </script>
+    document.getElementById('logoutBtnAdmin').addEventListener('click', () => { clearSession(); usuarioActivo=null; document.getElementById('dashboardAdmin').style.display='none'; document.getElementById('dashboardTecnico').style.display='none'; document.getElementById('loginCard').style.display='block'; });
+    document.getElementById('logoutBtnTec').addEventListener('click', () => { clearSession(); usuarioActivo=null; document.getElementById('dashboardAdmin').style.display='none'; document.getElementById('dashboardTecnico').style.display='none'; document.getElementById('loginCard').style.display='block'; });
+  
+  // ---- Sesión persistente ----
+  function setSession(data){ localStorage.setItem('session', JSON.stringify(data)); }
+  function clearSession(){ localStorage.removeItem('session'); }
+  function getSession(){ try { return JSON.parse(localStorage.getItem('session')||'null'); } catch { return null; } }
+
+  async function bootFromSession(){
+    const data = getSession();
+    if(!data) return;
+    usuarioActivo = data;
+    document.getElementById('loginCard').style.display = 'none';
+    if (data.rol === 'tecnico') {
+      document.getElementById('dashboardTecnico').style.display = 'block';
+      document.getElementById('tecnicoNombre').textContent = data.usuario;
+      await cargarMisOrdenes();
+    } else {
+      document.getElementById('dashboardAdmin').style.display = 'block';
+      document.getElementById('adminNombre').textContent = data.usuario;
+      document.getElementById('rolBadge').textContent = data.rol === 'superadmin' ? '🔑 Superadmin' : '👤 Admin';
+      await cargarUsuarios();
+      await cargarOrdenes();
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', bootFromSession);
+
+</script>
 </body>
 </html>
