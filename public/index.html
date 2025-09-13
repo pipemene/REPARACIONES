@@ -134,8 +134,82 @@
     </div></div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js">document.getElementById('crearOrdenForm')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = e.submitter || e.target.querySelector('button[type="submit"]') || e.target.querySelector('button');
+      if (btn) { btn.disabled = true; btn.textContent = 'Creando...'; }
+      try {
+        const orden = {
+          codigoInmueble: document.getElementById('codigoInmueble').value?.trim(),
+          nombre: document.getElementById('cliente').value?.trim(),
+          telefono: document.getElementById('telefono').value?.trim(),
+          descripcion: document.getElementById('descripcion').value?.trim()
+        };
+        if (!orden.codigoInmueble || !orden.nombre || !orden.telefono || !orden.descripcion) {
+          alert('Por favor completa todos los campos.');
+          return;
+        }
+        const resp = await fetch('/api/ordenes', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(orden)
+        });
+        const data = await resp.json().catch(() => ({}));
+        if (!resp.ok) {
+          alert('No se pudo crear la orden: ' + (data.error || resp.statusText));
+          console.error('Error crear orden:', resp.status, data);
+          return;
+        }
+        alert('✅ Orden creada (#' + data.id + ')');
+        e.target.reset();
+        await cargarOrdenes();
+      } catch (err) {
+        console.error('Excepción crear orden:', err);
+        alert('Error inesperado creando la orden.');
+      } finally {
+        if (btn) { btn.disabled = false; btn.textContent = 'Crear'; }
+      }
+    });
+
+</script>
+  <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js">document.getElementById('crearOrdenForm')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = e.submitter || e.target.querySelector('button[type="submit"]') || e.target.querySelector('button');
+      if (btn) { btn.disabled = true; btn.textContent = 'Creando...'; }
+      try {
+        const orden = {
+          codigoInmueble: document.getElementById('codigoInmueble').value?.trim(),
+          nombre: document.getElementById('cliente').value?.trim(),
+          telefono: document.getElementById('telefono').value?.trim(),
+          descripcion: document.getElementById('descripcion').value?.trim()
+        };
+        if (!orden.codigoInmueble || !orden.nombre || !orden.telefono || !orden.descripcion) {
+          alert('Por favor completa todos los campos.');
+          return;
+        }
+        const resp = await fetch('/api/ordenes', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(orden)
+        });
+        const data = await resp.json().catch(() => ({}));
+        if (!resp.ok) {
+          alert('No se pudo crear la orden: ' + (data.error || resp.statusText));
+          console.error('Error crear orden:', resp.status, data);
+          return;
+        }
+        alert('✅ Orden creada (#' + data.id + ')');
+        e.target.reset();
+        await cargarOrdenes();
+      } catch (err) {
+        console.error('Excepción crear orden:', err);
+        alert('Error inesperado creando la orden.');
+      } finally {
+        if (btn) { btn.disabled = false; btn.textContent = 'Crear'; }
+      }
+    });
+
+</script>
   <script>
     let usuarioActivo = null;
     let usuariosGlobal = [];
@@ -355,6 +429,43 @@
   }
 
   document.addEventListener('DOMContentLoaded', bootFromSession);
+
+document.getElementById('crearOrdenForm')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = e.submitter || e.target.querySelector('button[type="submit"]') || e.target.querySelector('button');
+      if (btn) { btn.disabled = true; btn.textContent = 'Creando...'; }
+      try {
+        const orden = {
+          codigoInmueble: document.getElementById('codigoInmueble').value?.trim(),
+          nombre: document.getElementById('cliente').value?.trim(),
+          telefono: document.getElementById('telefono').value?.trim(),
+          descripcion: document.getElementById('descripcion').value?.trim()
+        };
+        if (!orden.codigoInmueble || !orden.nombre || !orden.telefono || !orden.descripcion) {
+          alert('Por favor completa todos los campos.');
+          return;
+        }
+        const resp = await fetch('/api/ordenes', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(orden)
+        });
+        const data = await resp.json().catch(() => ({}));
+        if (!resp.ok) {
+          alert('No se pudo crear la orden: ' + (data.error || resp.statusText));
+          console.error('Error crear orden:', resp.status, data);
+          return;
+        }
+        alert('✅ Orden creada (#' + data.id + ')');
+        e.target.reset();
+        await cargarOrdenes();
+      } catch (err) {
+        console.error('Excepción crear orden:', err);
+        alert('Error inesperado creando la orden.');
+      } finally {
+        if (btn) { btn.disabled = false; btn.textContent = 'Crear'; }
+      }
+    });
 
 </script>
 </body>
