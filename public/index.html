@@ -28,8 +28,9 @@
         </div>
       </div>
       <div class="d-flex justify-content-between mt-2">
-        <button id="btnProbarAPI" type="button" class="btn btn-outline-secondary btn-sm">Probar API</button>
+        <button id="btnProbarAPI" type="button" class="btn btn-outline-secondary btn-sm" onclick="(async()=>{ try{ const u=(typeof api===\'function\'? api(\'/api/health\') : \'/api/health\'); alert(\'Probando \'+u); const r=await fetch(u,{cache:\'no-store\'}); const ok=r&&r.ok; const el=document.getElementById(\'apiStatus\')||document.getElementById(\'apiStatusBar\'); if(el){ el.textContent = ok?\'API OK ✅\':(\'API ERROR ❌ \'+(r?r.status:\'sin respuesta\')); el.className = ok?\'text-success\':\'text-danger\'; if(el.id===\'apiStatusBar\'){ el.className = \'alert \'+(ok?\'alert-success\':\'alert-danger\')+\' py-2\'; el.style.display=\'block\'; } } }catch(e){ alert(\'No se pudo contactar la API\'); const el=document.getElementById(\'apiStatus\')||document.getElementById(\'apiStatusBar\'); if(el){ el.textContent=\'API no responde ❌\'; if(el.id===\'apiStatusBar\'){ el.className=\'alert alert-danger py-2\'; el.style.display=\'block\'; } else { el.className=\'text-danger\'; } } } })()">Probar API</button>
         <small id="apiStatus" class="text-muted"></small>
+<div class="form-text">URL efectiva de health: <code id="apiEffectiveUrl">/api/health</code></div>
       </div>
     </div>
 
@@ -359,6 +360,7 @@
     }
     document.addEventListener('DOMContentLoaded', probeApi);
 
+    (function(){try{const el=document.getElementById('apiEffectiveUrl'); if(!el) return; const base=(typeof getApiBase==='function')?(getApiBase()||''):(window.API_BASE||''); const url=(base?base.replace(/\/$/,''):'')+'/api/health'; el.textContent=url;}catch(e){}})();
     // Probar API handler
     document.getElementById('btnProbarAPI')?.addEventListener('click', async ()=>{ alert('Probando ' + api('/api/health')); await probeApi();
       const statusEl = document.getElementById('apiStatus');
