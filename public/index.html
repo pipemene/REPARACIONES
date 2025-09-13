@@ -5,22 +5,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Gestor de Reparaciones</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
-  <style>
-    .card-compact { box-shadow: 0 2px 8px rgba(0,0,0,.06); }
-  </style>
 </head>
 <body class="bg-light">
   <div class="container mt-5">
     <h1 class="text-center mb-4">Gestor de Reparaciones</h1>
 
     <!-- Login -->
-    <div id="loginCard" class="card card-compact p-4">
+    <div id="loginCard" class="card p-4 shadow-sm">
       <h3 class="mb-3">Login</h3>
       <form id="loginForm">
         <div class="mb-3"><input type="text" id="usuario" class="form-control" placeholder="Usuario" required/></div>
         <div class="mb-3"><input type="password" id="password" class="form-control" placeholder="Contraseña" required/></div>
         <button id="btnLogin" type="submit" class="btn btn-primary w-100">Ingresar</button>
       </form>
+      <div class="d-flex justify-content-between mt-2">
+        <button id="btnProbarAPI" type="button" class="btn btn-outline-secondary btn-sm">Probar API</button>
+        <small id="apiStatus" class="text-muted"></small>
+      </div>
     </div>
 
     <!-- Admin/Superadmin Dashboard -->
@@ -37,7 +38,7 @@
 
       <div class="tab-content mt-3">
         <div class="tab-pane fade show active" id="tabOrdenes">
-          <div class="card card-compact p-3 mb-3">
+          <div class="card p-3 mb-3">
             <h5 class="mb-2">Crear Orden</h5>
             <form id="crearOrdenForm" class="row g-3">
               <div class="col-md-3"><input id="codigoInmueble" class="form-control" placeholder="Código inmueble" required/></div>
@@ -55,7 +56,7 @@
         </div>
 
         <div class="tab-pane fade" id="tabUsuarios">
-          <div class="card card-compact p-3 mb-3">
+          <div class="card p-3 mb-3">
             <h5 class="mb-2">Crear Usuario</h5>
             <form id="crearUsuarioForm" class="row g-3">
               <div class="col-md-3"><input id="nuevoUsuario" class="form-control" placeholder="Usuario" required/></div>
@@ -131,25 +132,19 @@
     </div></div>
   </div>
 
-  <!-- Firma modal for technician remains in PDF flow from previous versions -->
-
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script>
-    // ======= Estado global =======
     let usuarioActivo = null;
     let usuariosGlobal = [];
     let ordenDetalleId = null;
     let wired = { crearOrden: false };
 
-    // ======= Sesión =======
     function setSession(d){ localStorage.setItem('session', JSON.stringify(d)); }
     function getSession(){ try { return JSON.parse(localStorage.getItem('session')||'null'); } catch { return null; } }
     function clearSession(){ localStorage.removeItem('session'); }
 
-    // ======= Helpers =======
     async function fetchJSON(url, opts={}){ const r = await fetch(url, opts); const j = await r.json().catch(()=>null); return {ok:r.ok, status:r.status, data:j}; }
 
-    // ======= Carga Usuarios / Órdenes =======
     async function cargarUsuarios(){
       const r = await fetchJSON('/api/usuarios'); if(!r.ok) return;
       usuariosGlobal = r.data || [];
@@ -218,16 +213,13 @@
       });
     }
 
-    // ======= Acciones =======
     async function asignarTecnico(id, tecnicoId){ if(!tecnicoId) return;
       await fetchJSON('/api/ordenes/'+id+'/asignar', { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ tecnicoId, usuario: usuarioActivo.usuario }) });
       await cargarOrdenes();
     }
-
     async function cambiarEstado(id, estado){
       await fetchJSON('/api/ordenes/'+id, { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ estado, usuario: usuarioActivo.usuario }) });
     }
-
     async function verHistorial(id){
       const r = await fetchJSON('/api/ordenes/'+id+'/historial'); if(!r.ok) return;
       const list = r.data || [];
@@ -236,7 +228,6 @@
       list.forEach(h => { const li = document.createElement('li'); li.className='list-group-item'; li.textContent = \`\${h.fecha} - \${h.usuario}: \${h.accion}\`; ul.appendChild(li); });
       new bootstrap.Modal(document.getElementById('detalleModal')).show();
     }
-
     async function verDetalle(id){
       ordenDetalleId = id;
       const r = await fetch('/api/ordenes/'+id);
@@ -246,14 +237,11 @@
       document.getElementById('detCliente').textContent = o.nombre;
       document.getElementById('detDesc').textContent = o.descripcion;
       document.getElementById('detEstado').value = o.estado;
-      // historial
       const h = await fetch('/api/ordenes/'+id+'/historial'); const hist = await h.json();
       const ul = document.getElementById('detHistorial'); ul.innerHTML='';
       hist.forEach(x => { const li=document.createElement('li'); li.className='list-group-item'; li.textContent = \`\${x.fecha} - \${x.usuario}: \${x.accion}\`; ul.appendChild(li); });
       new bootstrap.Modal(document.getElementById('detalleModal')).show();
     }
-
-    // Nota & Evidencia desde detalle
     document.getElementById('btnGuardarNota').addEventListener('click', async () => {
       const ta = document.getElementById('detNota'); const texto = ta.value.trim(); if(!texto) return alert('Escribe una nota');
       await fetchJSON('/api/ordenes/'+ordenDetalleId+'/nota', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ texto, usuario: usuarioActivo.usuario }) });
@@ -266,19 +254,8 @@
       document.getElementById('detEvidencia').value=''; verDetalle(ordenDetalleId);
     });
 
-    // ======= Usuarios CRUD =======
-    async function eliminarUsuario(id){ await fetchJSON('/api/usuarios/'+id, { method:'DELETE' }); await cargarUsuarios(); await cargarOrdenes(); }
-    function abrirEditar(id, usuario, rol){
-      const nuevoUsuario = prompt('Nuevo usuario', usuario); if (nuevoUsuario===null) return;
-      const nuevoPassword = prompt('Nueva contraseña (dejar vacío para no cambiar)', '');
-      const nuevoRol = prompt('Rol (tecnico/admin)', rol) || rol;
-      const payload = { usuario:nuevoUsuario, rol:nuevoRol }; if (nuevoPassword) payload.password = nuevoPassword;
-      fetchJSON('/api/usuarios/'+id, { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) }).then(()=>{ cargarUsuarios(); cargarOrdenes(); });
-    }
-
-    // ======= Wire único de Crear Orden =======
     function wireCrearOrden(){
-      if (wired.crearOrden) return;
+      if (wireCrearOrden._wired) return;
       const form = document.getElementById('crearOrdenForm'); if (!form) return;
       form.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -297,11 +274,11 @@
           alert('✅ Orden creada (#'+j.id+')');
           form.reset(); await cargarOrdenes();
         } finally { if (btn) { btn.disabled = false; btn.textContent = 'Crear'; } }
-      }, { once:false });
-      wired.crearOrden = true;
+      });
+      wireCrearOrden._wired = true;
     }
 
-    // ======= Login y boot =======
+    // Login + boot
     document.getElementById('loginForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const usuario = document.getElementById('usuario').value;
@@ -322,10 +299,8 @@
         await cargarUsuarios(); await cargarOrdenes(); wireCrearOrden();
       }
     });
-
-    document.getElementById('logoutBtnAdmin').addEventListener('click', () => { clearSession(); location.reload(); });
-    document.getElementById('logoutBtnTec').addEventListener('click', () => { clearSession(); location.reload(); });
-
+    document.getElementById('logoutBtnAdmin').addEventListener('click', () => { localStorage.removeItem('session'); location.reload(); });
+    document.getElementById('logoutBtnTec').addEventListener('click', () => { localStorage.removeItem('session'); location.reload(); });
     async function bootFromSession(){
       const d = getSession(); if(!d) return;
       usuarioActivo = d; document.getElementById('loginCard').style.display='none';
@@ -341,6 +316,27 @@
       }
     }
     document.addEventListener('DOMContentLoaded', bootFromSession);
+
+    // Probar API handler
+    document.getElementById('btnProbarAPI')?.addEventListener('click', async ()=>{
+      const statusEl = document.getElementById('apiStatus');
+      try{
+        const r = await fetch('/api/health');
+        statusEl.textContent = r.ok ? 'API OK ✅' : 'API ERROR ❌ ('+r.status+')';
+      }catch(e){
+        statusEl.textContent = 'API no responde ❌';
+      }
+    });
+
+    // Usuarios edit/delete simples (prompt)
+    async function eliminarUsuario(id){ await fetchJSON('/api/usuarios/'+id, { method:'DELETE' }); await cargarUsuarios(); await cargarOrdenes(); }
+    function abrirEditar(id, usuario, rol){
+      const nuevoUsuario = prompt('Nuevo usuario', usuario); if (nuevoUsuario===null) return;
+      const nuevoPassword = prompt('Nueva contraseña (dejar vacío para no cambiar)', '');
+      const nuevoRol = prompt('Rol (tecnico/admin)', rol) || rol;
+      const payload = { usuario:nuevoUsuario, rol:nuevoRol }; if (nuevoPassword) payload.password = nuevoPassword;
+      fetchJSON('/api/usuarios/'+id, { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) }).then(()=>{ cargarUsuarios(); cargarOrdenes(); });
+    }
   </script>
 </body>
 </html>

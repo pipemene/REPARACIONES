@@ -1,5 +1,20 @@
 [
-  { "id": 100, "usuario": "PIPEMENE", "password": "Blu3h0m32016#", "rol": "superadmin" },
-  { "id": 1, "usuario": "Carlos", "password": "1234", "rol": "tecnico" },
-  { "id": 2, "usuario": "Andres", "password": "abcd", "rol": "tecnico" }
+  {
+    "id": 100,
+    "usuario": "PIPEMENE",
+    "password": "Blu3h0m32016#",
+    "rol": "superadmin"
+  },
+  {
+    "id": 1,
+    "usuario": "Carlos",
+    "password": "1234",
+    "rol": "tecnico"
+  },
+  {
+    "id": 2,
+    "usuario": "Admin1",
+    "password": "admin",
+    "rol": "admin"
+  }
 ]

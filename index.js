@@ -8,7 +8,6 @@ import multer from 'multer';
 import path from 'path';
 
 dotenv.config();
-
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -17,7 +16,6 @@ app.use(bodyParser.json({ limit: '20mb' }));
 app.use(express.static('public'));
 app.use('/uploads', express.static('uploads'));
 
-// Multer
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, 'uploads/'),
   filename: (req, file, cb) => {
@@ -33,44 +31,50 @@ const dbPathUsuarios = './data/usuarios.json';
 let ordenes = fs.existsSync(dbPathOrdenes) ? JSON.parse(fs.readFileSync(dbPathOrdenes)) : [];
 let usuarios = fs.existsSync(dbPathUsuarios) ? JSON.parse(fs.readFileSync(dbPathUsuarios)) : [];
 
-function saveOrdenes() { fs.writeFileSync(dbPathOrdenes, JSON.stringify(ordenes, null, 2)); }
-function saveUsuarios() { fs.writeFileSync(dbPathUsuarios, JSON.stringify(usuarios, null, 2)); }
-
-function registrarHistorial(orden, usuario, accion) {
+function saveOrdenes(){ fs.writeFileSync(dbPathOrdenes, JSON.stringify(ordenes, null, 2)); }
+function saveUsuarios(){ fs.writeFileSync(dbPathUsuarios, JSON.stringify(usuarios, null, 2)); }
+function registrarHistorial(orden, usuario, accion){
   if (!orden.historial) orden.historial = [];
   orden.historial.push({ fecha: new Date().toLocaleString(), usuario, accion });
 }
 
-// ---------- AUTH ----------
+// Health
+app.get('/api/health', (req,res)=>res.json({ ok: true }));
+
+// Login
 app.post('/api/login', (req, res) => {
-  const { usuario, password } = req.body;
-  const user = usuarios.find(u => u.usuario?.toLowerCase() === String(usuario).toLowerCase() && u.password === password);
+  const { usuario, password } = req.body || {};
+  console.log('Login intento:', usuario);
+  const user = usuarios.find(u => (u.usuario||'').toLowerCase() === String(usuario||'').toLowerCase() && u.password === password);
   if (!user) return res.status(401).json({ error: 'Usuario o contraseña incorrectos' });
   res.json({ id: user.id, usuario: user.usuario, rol: user.rol });
 });
 
-// ---------- USERS ----------
+// Usuarios
 app.get('/api/usuarios', (req, res) => res.json(usuarios));
 app.post('/api/usuarios', (req, res) => {
-  const { usuario, password, rol } = req.body;
+  const { usuario, password, rol } = req.body || {};
   if (!usuario || !password || !rol) return res.status(400).json({ error: 'Campos requeridos' });
-  if (usuarios.find(u => u.usuario?.toLowerCase() === String(usuario).toLowerCase())) return res.status(400).json({ error: 'Usuario ya existe' });
+  if (usuarios.find(u => (u.usuario||'').toLowerCase() === String(usuario).toLowerCase()))
+    return res.status(400).json({ error: 'Usuario ya existe' });
   const nuevo = { id: usuarios.length ? Math.max(...usuarios.map(u => u.id)) + 1 : 1, usuario, password, rol };
   usuarios.push(nuevo); saveUsuarios(); res.json(nuevo);
 });
 app.put('/api/usuarios/:id', (req, res) => {
-  const { id } = req.params;
-  const user = usuarios.find(u => u.id === parseInt(id));
+  const user = usuarios.find(u => u.id === parseInt(req.params.id));
   if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
-  const { usuario, password, rol } = req.body;
+  const { usuario, password, rol } = req.body || {};
   if (usuario) user.usuario = usuario;
   if (password) user.password = password;
   if (rol) user.rol = rol;
   saveUsuarios(); res.json(user);
 });
-app.delete('/api/usuarios/:id', (req, res) => { usuarios = usuarios.filter(u => u.id !== parseInt(req.params.id)); saveUsuarios(); res.json({ ok: true }); });
+app.delete('/api/usuarios/:id', (req, res) => {
+  usuarios = usuarios.filter(u => u.id !== parseInt(req.params.id));
+  saveUsuarios(); res.json({ ok: true });
+});
 
-// ---------- ORDERS ----------
+// Órdenes
 app.get('/api/ordenes', (req, res) => res.json(ordenes));
 app.get('/api/ordenes/:id', (req, res) => {
   const o = ordenes.find(x => x.id === parseInt(req.params.id));
@@ -82,8 +86,8 @@ app.get('/api/mis-ordenes/:tecnicoId', (req, res) => {
   res.json(ordenes.filter(o => o.tecnicoId === id));
 });
 app.post('/api/ordenes', (req, res) => {
+  const { codigoInmueble, nombre, telefono, descripcion } = req.body || {};
   console.log('Crear orden payload:', req.body);
-  const { codigoInmueble, nombre, telefono, descripcion } = req.body;
   if (!codigoInmueble || !nombre || !telefono || !descripcion) return res.status(400).json({ error: 'Todos los campos son requeridos' });
   const nuevaOrden = {
     id: ordenes.length ? Math.max(...ordenes.map(o => o.id)) + 1 : 1,
@@ -96,7 +100,7 @@ app.post('/api/ordenes', (req, res) => {
 app.put('/api/ordenes/:id/asignar', (req, res) => {
   const orden = ordenes.find(o => o.id === parseInt(req.params.id));
   if (!orden) return res.status(404).json({ error: 'Orden no encontrada' });
-  const { tecnicoId, usuario } = req.body;
+  const { tecnicoId, usuario } = req.body || {};
   orden.tecnicoId = parseInt(tecnicoId);
   registrarHistorial(orden, usuario || 'Admin', `Técnico asignado: ${tecnicoId}`);
   saveOrdenes(); res.json(orden);
@@ -104,7 +108,7 @@ app.put('/api/ordenes/:id/asignar', (req, res) => {
 app.put('/api/ordenes/:id', (req, res) => {
   const orden = ordenes.find(o => o.id === parseInt(req.params.id));
   if (!orden) return res.status(404).json({ error: 'Orden no encontrada' });
-  const { estado, firma, usuario } = req.body;
+  const { estado, firma, usuario } = req.body || {};
   if (estado) { orden.estado = estado; registrarHistorial(orden, usuario || 'Sistema', `Estado cambiado a ${estado}`); }
   if (firma) {
     const fileName = `uploads/firma_${orden.id}.png`;
@@ -118,70 +122,10 @@ app.post('/api/ordenes/:id/evidencia', upload.single('evidencia'), (req, res) =>
   const orden = ordenes.find(o => o.id === parseInt(req.params.id));
   if (!orden) return res.status(404).json({ error: 'Orden no encontrada' });
   if (!req.file) return res.status(400).json({ error: 'Archivo requerido' });
-  orden.evidencias.push(req.file.path); registrarHistorial(orden, req.body.usuario || 'Técnico', 'Evidencia subida');
+  orden.evidencias.push(req.file.path);
+  registrarHistorial(orden, req.body.usuario || 'Técnico', 'Evidencia subida');
   saveOrdenes(); res.json({ ok: true, archivo: req.file.path });
 });
-app.get('/api/ordenes/:id/historial', (req, res) => {
-  const orden = ordenes.find(o => o.id === parseInt(req.params.id));
-  if (!orden) return res.status(404).json({ error: 'Orden no encontrada' });
-  res.json(orden.historial || []);
-});
-app.get('/api/ordenes/:id/pdf', (req, res) => {
-  const orden = ordenes.find(o => o.id === parseInt(req.params.id));
-  if (!orden) return res.status(404).json({ error: 'Orden no encontrada' });
-
-  const doc = new PDFDocument();
-  const filePath = `uploads/orden_${orden.id}.pdf`;
-  const stream = fs.createWriteStream(filePath);
-  doc.pipe(stream);
-
-  doc.fontSize(20).text(`Orden de Servicio #${orden.id}`, { align: 'center' });
-  doc.moveDown();
-  doc.fontSize(12).text(`Código inmueble: ${orden.codigoInmueble}`);
-  doc.text(`Cliente: ${orden.nombre}`);
-  doc.text(`Teléfono: ${orden.telefono}`);
-  doc.text(`Descripción: ${orden.descripcion}`);
-  doc.text(`Estado: ${orden.estado}`);
-  doc.text(`Fecha: ${new Date(orden.fecha).toLocaleString()}`);
-  if (orden.tecnicoId) {
-    const t = usuarios.find(u => u.id === orden.tecnicoId);
-    doc.text(`Técnico asignado: ${t ? t.usuario : orden.tecnicoId}`);
-  } else {
-    doc.text(`Técnico asignado: Sin asignar`);
-  }
-
-  if (orden.historial && orden.historial.length) {
-    doc.addPage().fontSize(16).text('Historial de Cambios:', { align: 'left' });
-    orden.historial.forEach(h => { doc.fontSize(12).text(`${h.fecha} - ${h.usuario}: ${h.accion}`); });
-  }
-
-  if (orden.firma && fs.existsSync(orden.firma)) {
-    doc.addPage().fontSize(16).text('Firma del cliente:', { align: 'left' });
-    doc.image(orden.firma, { fit: [300, 200], align: 'center' });
-  }
-
-  if (orden.evidencias && orden.evidencias.length) {
-    doc.addPage().fontSize(16).text('Evidencias:', { align: 'left' });
-    orden.evidencias.forEach(ev => {
-      if (fs.existsSync(ev)) {
-        try { doc.image(ev, { fit: [250, 250] }); doc.moveDown(); } catch { doc.fontSize(12).text(`Archivo: ${ev}`); }
-      }
-    });
-  }
-
-  doc.end();
-  stream.on('finish', () => res.download(filePath));
-});
-
-
-// Health check
-app.get('/api/health', (req, res) => res.json({ ok: true }));
-
-app.listen(PORT, () => console.log(`Servidor corriendo en puerto ${PORT}`));
-
-
-
-// Add note to order
 app.post('/api/ordenes/:id/nota', (req, res) => {
   const orden = ordenes.find(o => o.id === parseInt(req.params.id));
   if (!orden) return res.status(404).json({ error: 'Orden no encontrada' });
@@ -191,6 +135,59 @@ app.post('/api/ordenes/:id/nota', (req, res) => {
   const nota = { fecha: new Date().toLocaleString(), usuario: usuario || 'Usuario', texto };
   orden.notas.push(nota);
   registrarHistorial(orden, usuario || 'Usuario', 'Nota añadida');
-  saveOrdenes();
-  res.json(nota);
+  saveOrdenes(); res.json(nota);
 });
+app.get('/api/ordenes/:id/historial', (req, res) => {
+  const orden = ordenes.find(o => o.id === parseInt(req.params.id));
+  if (!orden) return res.status(404).json({ error: 'Orden no encontrada' });
+  res.json(orden.historial || []);
+});
+
+// PDF
+app.get('/api/ordenes/:id/pdf', (req, res) => {
+  const orden = ordenes.find(o => o.id === parseInt(req.params.id));
+  if (!orden) return res.status(404).json({ error: 'Orden no encontrada' });
+  const doc = new PDFDocument();
+  const filePath = `uploads/orden_${orden.id}.pdf`;
+  const stream = fs.createWriteStream(filePath);
+  doc.pipe(stream);
+
+  doc.fontSize(20).text(`Orden de Servicio #${orden.id}`, { align: 'center' }).moveDown();
+  doc.fontSize(12).text(`Código inmueble: ${orden.codigoInmueble}`);
+  doc.text(`Cliente: ${orden.nombre}`);
+  doc.text(`Teléfono: ${orden.telefono}`);
+  doc.text(`Descripción: ${orden.descripcion}`);
+  doc.text(`Estado: ${orden.estado}`);
+  doc.text(`Fecha: ${new Date(orden.fecha).toLocaleString()}`);
+  if (orden.tecnicoId) {
+    const t = usuarios.find(u => u.id === orden.tecnicoId);
+    doc.text(`Técnico asignado: ${t ? t.usuario : orden.tecnicoId}`);
+  } else doc.text(`Técnico asignado: Sin asignar`);
+
+  if (orden.notas?.length) {
+    doc.addPage().fontSize(16).text('Notas:', { align: 'left' });
+    orden.notas.forEach(n => doc.fontSize(12).text(`${n.fecha} - ${n.usuario}: ${n.texto}`));
+  }
+
+  if (orden.historial?.length) {
+    doc.addPage().fontSize(16).text('Historial de Cambios:', { align: 'left' });
+    orden.historial.forEach(h => doc.fontSize(12).text(`${h.fecha} - ${h.usuario}: ${h.accion}`));
+  }
+
+  if (orden.firma && fs.existsSync(orden.firma)) {
+    doc.addPage().fontSize(16).text('Firma del cliente:', { align: 'left' });
+    doc.image(orden.firma, { fit: [300, 200], align: 'center' });
+  }
+
+  if (orden.evidencias?.length) {
+    doc.addPage().fontSize(16).text('Evidencias:', { align: 'left' });
+    orden.evidencias.forEach(ev => {
+      if (fs.existsSync(ev)) { try { doc.image(ev, { fit: [250, 250] }); doc.moveDown(); } catch { doc.fontSize(12).text(`Archivo: ${ev}`); } }
+    });
+  }
+
+  doc.end();
+  stream.on('finish', () => res.download(filePath));
+});
+
+app.listen(PORT, () => console.log(`Servidor corriendo en puerto ${PORT}`));
