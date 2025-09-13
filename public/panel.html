@@ -37,7 +37,7 @@
       <div class="row">
         <button onclick="listUsers()">Actualizar listado</button>
       </div>
-      <pre id="usersOut"></pre>
+      <div id="usersOut"></div>
     </section>
 
     <section id="tab-ordenes" class="card hidden">
@@ -113,6 +113,8 @@ function activateTab(id){
 
 // Setup UI by role
 async function setup(){
+  // Auto-redirect if params missing
+  if(!rol){ location.href = '/'; return; }
   setWho();
   tabs.innerHTML = '';
   // Tabs config
@@ -124,6 +126,7 @@ async function setup(){
     document.getElementById('uRol').innerHTML = roles.map(r=>`<option>${r}</option>`).join('');
     document.getElementById('uRolEdit').innerHTML += roles.map(r=>`<option>${r}</option>`).join('');
     showEl('tab-usuarios', true);
+    await listUsers();
     showEl('ordenesAdminControls', true);
     showEl('asignControls', true);
   } else if(rol==='admin'){
@@ -142,7 +145,26 @@ async function setup(){
 }
 
 // Usuarios
-async function listUsers(){ const r=await fetch('/api/usuarios'); const j=await r.json(); document.getElementById('usersOut').textContent = JSON.stringify(j,null,2); }
+async function listUsers(){
+  const out = document.getElementById('usersOut');
+  out.innerHTML = '<p class="badge">Cargando usuarios...</p>';
+  try{
+    const r = await fetch('/api/usuarios', { cache: 'no-store' });
+    if(!r.ok){ throw new Error('HTTP '+r.status); }
+    const j = await r.json();
+    if(!Array.isArray(j) || j.length===0){
+      out.innerHTML = '<div class="notice">⚠️ No hay usuarios registrados.</div>';
+      return;
+    }
+    const rows = j.map(u => `<tr><td>${u.id}</td><td>${u.usuario}</td><td>${u.rol}</td></tr>`).join('');
+    out.innerHTML = `<table><thead><tr><th>ID</th><th>Usuario</th><th>Rol</th></tr></thead><tbody>${rows}</tbody></table>`;
+  } catch(err){
+    out.innerHTML = `<div class="notice">❌ Error cargando usuarios: ${err.message}</div>`;
+  }
+}
+  const rows = j.map(u => `<tr><td>${u.id}</td><td>${u.usuario}</td><td>${u.rol}</td></tr>`).join('');
+  out.innerHTML = `<table><thead><tr><th>ID</th><th>Usuario</th><th>Rol</th></tr></thead><tbody>${rows}</tbody></table>`;
+}
 async function createUser(){
   const usuario = document.getElementById('uUsuario').value;
   const password = document.getElementById('uPass').value;
