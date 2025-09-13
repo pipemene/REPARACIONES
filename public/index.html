@@ -18,6 +18,13 @@
         <div class="mb-3"><input type="password" id="password" class="form-control" placeholder="Contraseña" required/></div>
         <button id="btnLogin" type="submit" class="btn btn-primary w-100">Ingresar</button>
       </form>
+      <div class="mt-2">
+        <div class="input-group input-group-sm mb-2">
+          <span class="input-group-text">API</span>
+          <input id="apiBaseInput" class="form-control" placeholder="https://tuapp.up.railway.app (opcional)"/>
+          <button id="btnGuardarAPI" class="btn btn-outline-primary" type="button">Guardar</button>
+        </div>
+      </div>
       <div class="d-flex justify-content-between mt-2">
         <button id="btnProbarAPI" type="button" class="btn btn-outline-secondary btn-sm">Probar API</button>
         <small id="apiStatus" class="text-muted"></small>
@@ -230,14 +237,14 @@
     }
     async function verDetalle(id){
       ordenDetalleId = id;
-      const r = await fetch('/api/ordenes/'+id);
+      const r = await fetch(api('/api/ordenes/'+id);
       if(!r.ok){ alert('No se pudo cargar la orden'); return; }
       const o = await r.json();
       document.getElementById('detId').textContent = o.id;
       document.getElementById('detCliente').textContent = o.nombre;
       document.getElementById('detDesc').textContent = o.descripcion;
       document.getElementById('detEstado').value = o.estado;
-      const h = await fetch('/api/ordenes/'+id+'/historial'); const hist = await h.json();
+      const h = await fetch(api('/api/ordenes/'+id+'/historial'); const hist = await h.json();
       const ul = document.getElementById('detHistorial'); ul.innerHTML='';
       hist.forEach(x => { const li=document.createElement('li'); li.className='list-group-item'; li.textContent = \`\${x.fecha} - \${x.usuario}: \${x.accion}\`; ul.appendChild(li); });
       new bootstrap.Modal(document.getElementById('detalleModal')).show();
@@ -250,7 +257,7 @@
     document.getElementById('btnSubirEvidencia').addEventListener('click', async () => {
       const file = document.getElementById('detEvidencia').files[0]; if(!file) return alert('Selecciona una imagen');
       const fd = new FormData(); fd.append('evidencia', file); fd.append('usuario', usuarioActivo.usuario);
-      await fetch('/api/ordenes/'+ordenDetalleId+'/evidencia', { method:'POST', body: fd });
+      await fetch(api('/api/ordenes/'+ordenDetalleId+'/evidencia', { method:'POST', body: fd });
       document.getElementById('detEvidencia').value=''; verDetalle(ordenDetalleId);
     });
 
@@ -268,7 +275,7 @@
             descripcion: document.getElementById('descripcion').value.trim()
           };
           if (!orden.codigoInmueble || !orden.nombre || !orden.telefono || !orden.descripcion) { alert('Completa todos los campos'); return; }
-          const r = await fetch('/api/ordenes', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(orden) });
+          const r = await fetch(api('/api/ordenes', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(orden) });
           const j = await r.json().catch(()=>({}));
           if (!r.ok){ alert('No se pudo crear: ' + (j.error || r.statusText)); return; }
           alert('✅ Orden creada (#'+j.id+')');
@@ -283,7 +290,7 @@
       e.preventDefault();
       const usuario = document.getElementById('usuario').value;
       const password = document.getElementById('password').value;
-      const r = await fetch('/api/login', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ usuario, password }) });
+      const r = await fetch(api('/api/login', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ usuario, password }) });
       const d = await r.json();
       if (!d.usuario){ alert(d.error || 'Error de acceso'); return; }
       usuarioActivo = d; setSession(d);
@@ -317,11 +324,23 @@
     }
     document.addEventListener('DOMContentLoaded', bootFromSession);
 
+    
+    // ===== API BASE handling =====
+    function getApiBase(){ return localStorage.getItem('API_BASE') || (window.API_BASE || ''); }
+    function setApiBase(url){ if(url){ localStorage.setItem('API_BASE', url); } else { localStorage.removeItem('API_BASE'); } }
+    function api(url){ const base = getApiBase(); return (base ? base.replace(/\/$/,'') : '') + url; }
+    (function wireApiBase(){
+      const inp = document.getElementById('apiBaseInput');
+      const btn = document.getElementById('btnGuardarAPI');
+      if (inp){ inp.value = getApiBase(); }
+      if (btn){ btn.addEventListener('click', ()=>{ setApiBase(inp.value.trim()); alert('API guardada'); }); }
+    })();
+
     // Probar API handler
-    document.getElementById('btnProbarAPI')?.addEventListener('click', async ()=>{
+    document.getElementById('btnProbarAPI')?.addEventListener('click', async ()=>{ alert('Probando ' + api('/api/health'));
       const statusEl = document.getElementById('apiStatus');
       try{
-        const r = await fetch('/api/health');
+        const r = await fetch(api('/api/health');
         statusEl.textContent = r.ok ? 'API OK ✅' : 'API ERROR ❌ ('+r.status+')';
       }catch(e){
         statusEl.textContent = 'API no responde ❌';

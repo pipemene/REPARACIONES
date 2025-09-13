@@ -39,6 +39,8 @@ function registrarHistorial(orden, usuario, accion){
 }
 
 // Health
+app.get('/', (req,res)=>res.send('REPARACIONES API OK'));
+
 app.get('/api/health', (req,res)=>res.json({ ok: true }));
 
 // Login
