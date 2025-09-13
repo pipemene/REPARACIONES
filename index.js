@@ -1,3 +1,4 @@
+
 import express from 'express';
 import bodyParser from 'body-parser';
 import cors from 'cors';
@@ -41,7 +42,7 @@ function registrarHistorial(orden, usuario, accion){
   orden.historial.push({ fecha:new Date().toLocaleString(), usuario, accion });
 }
 
-// Seed: usuarios pedidos
+// Seed users
 if(!usuarios.length){
   usuarios.push(
     { id:1, usuario:'PIPEMENE', password:'Blu3h0m32016#', rol:'superadmin' },
@@ -52,11 +53,10 @@ if(!usuarios.length){
   console.log('Seed: PIPEMENE(superadmin), ARRENDAMIENTOS(admin), TECNICO1(tecnico)');
 }
 
-// Root + salud
-app.get('/', (_req,res)=>res.sendFile(path.resolve('public/index.html')));
+// Health
 app.get('/api/health', (_req,res)=>res.json({ok:true, ts:new Date().toISOString()}));
 
-// Usuarios (debug listado seguro para la UI)
+// Users
 app.get('/api/usuarios', (_req,res)=>res.json(usuarios));
 app.get('/api/usuarios/roles', (_req,res)=>res.json(['superadmin','admin','operador','tecnico']));
 
@@ -79,7 +79,7 @@ app.post('/api/login', (req,res)=>{
   res.json({ id:user.id, usuario:user.usuario, rol, isSuperAdmin, isAdmin, isTecnico, isOperador, permisos });
 });
 
-// CRUD usuarios (solo backend; la UI los expone solo a superadmin)
+// Users CRUD
 app.post('/api/usuarios', (req,res)=>{
   const usuario = cleanStr(req.body.usuario || req.body.username);
   const password = String(req.body.password ?? req.body.pass ?? req.body.contrasena ?? '');
@@ -112,13 +112,11 @@ app.delete('/api/usuarios/:id', (req,res)=>{
   saveUsuarios(); res.json({mensaje:'Usuario eliminado'});
 });
 
-// Órdenes
+// Orders
 app.get('/api/ordenes', (req,res)=>{
   const tecnicoId = req.query.tecnicoId ? parseInt(req.query.tecnicoId) : null;
   const soloMias = req.query.mine==='1' && tecnicoId;
-  if(soloMias){
-    return res.json(ordenes.filter(o=>o.tecnicoId===tecnicoId));
-  }
+  if(soloMias){ return res.json(ordenes.filter(o=>o.tecnicoId===tecnicoId)); }
   res.json(ordenes);
 });
 app.post('/api/ordenes', (req,res)=>{
@@ -138,7 +136,6 @@ app.put('/api/ordenes/:id/asignar', (req,res)=>{
   if(!tecnicoId) return res.status(400).json({error:'tecnicoId requerido'});
   orden.tecnicoId=tecnicoId; registrarHistorial(orden,usuario,`Técnico asignado: ${tecnicoId}`); saveOrdenes(); res.json(orden);
 });
-// Tomar orden (técnico se autoasigna)
 app.put('/api/ordenes/:id/tomar', (req,res)=>{
   const {id}=req.params; const tecnicoId=parseInt(req.body.tecnicoId);
   const usuario = cleanStr(req.body.usuario||'Tecnico');

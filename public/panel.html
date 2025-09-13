@@ -1,0 +1,187 @@
+
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Reparaciones · Panel</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div class="grid">
+    <div class="card-wide">
+      <div class="row">
+        <div id="who"></div>
+        <button onclick="logout()">Cerrar sesión</button>
+      </div>
+    </div>
+
+    <div id="usersCard" class="card-wide hidden">
+      <h3>Usuarios (solo superadmin)</h3>
+      <div class="row">
+        <input id="uUsuario" placeholder="Usuario" />
+        <input id="uPass" placeholder="Contraseña" />
+        <select id="uRol"></select>
+        <button onclick="createUser()">Crear usuario</button>
+      </div>
+      <pre id="usersOut"></pre>
+    </div>
+
+    <div id="ordenesAdmin" class="card-wide hidden">
+      <h3>Órdenes (admin/superadmin)</h3>
+      <div class="row">
+        <input id="oCodigo" placeholder="Código inmueble" />
+        <input id="oNombre" placeholder="Cliente" />
+        <input id="oTel" placeholder="Teléfono" />
+        <input id="oDesc" placeholder="Descripción" style="flex:2" />
+        <button onclick="crearOrden()">Crear</button>
+        <button onclick="listOrdenes()">Listar</button>
+      </div>
+      <div class="row">
+        <input id="asigId" placeholder="ID orden" />
+        <input id="asigTec" placeholder="ID técnico" />
+        <button onclick="asignar()">Asignar técnico</button>
+        <input id="pdfId" placeholder="ID orden" />
+        <button onclick="descargarPDF()">Descargar PDF</button>
+      </div>
+      <pre id="ordenesOut"></pre>
+    </div>
+
+    <div id="ordenesTec" class="card-wide hidden">
+      <h3>Mis órdenes (técnico)</h3>
+      <div class="row">
+        <button onclick="listarMisOrdenes()">Listar mis órdenes</button>
+        <input id="tomarId" placeholder="ID orden" />
+        <button onclick="tomar()">Tomar orden</button>
+      </div>
+      <div class="row">
+        <input id="estadoId" placeholder="ID orden" />
+        <select id="estadoNew">
+          <option value="pendiente">pendiente</option>
+          <option value="en_proceso">en_proceso</option>
+          <option value="finalizada">finalizada</option>
+        </select>
+        <button onclick="cambiarEstado()">Cambiar estado</button>
+      </div>
+      <div class="row">
+        <input id="eviId" placeholder="ID orden" />
+        <input id="eviFile" type="file" />
+        <button onclick="subirEvidencia()">Subir evidencia</button>
+      </div>
+      <h4>Firma del inquilino</h4>
+      <canvas id="sig" width="320" height="160"></canvas>
+      <div class="row">
+        <input id="sigId" placeholder="ID orden" />
+        <button onclick="limpiarFirma()">Limpiar</button>
+        <button onclick="enviarFirma()">Guardar firma</button>
+      </div>
+      <pre id="misOut"></pre>
+    </div>
+  </div>
+
+<script>
+const params = new URLSearchParams(location.search);
+const rol = params.get('rol'); const id = parseInt(params.get('id')); const usuario = params.get('usuario');
+const who = document.getElementById('who');
+
+function show(idEl, show=true){ document.getElementById(idEl).classList.toggle('hidden', !show); }
+function logout(){ location.href = '/'; }
+
+function setWho(){
+  who.innerHTML = 'Conectado como <span class="badge">'+usuario+'</span> · rol <span class="badge">'+rol+'</span>';
+}
+
+async function setup(){
+  setWho();
+  if(rol==='superadmin'){
+    show('usersCard', true);
+    show('ordenesAdmin', true);
+    const rroles = await fetch('/api/usuarios/roles'); const roles = await rroles.json();
+    document.getElementById('uRol').innerHTML = roles.map(r=>`<option>${r}</option>`).join('');
+  } else if(rol==='admin'){
+    show('ordenesAdmin', true);
+  } else if(rol==='tecnico'){
+    show('ordenesTec', true);
+  }
+}
+
+// Usuarios (solo superadmin en UI)
+async function createUser(){
+  const usuario = document.getElementById('uUsuario').value;
+  const password = document.getElementById('uPass').value;
+  const rol = document.getElementById('uRol').value;
+  const r = await fetch('/api/usuarios',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({usuario,password,rol})});
+  const j = await r.json(); document.getElementById('usersOut').textContent = JSON.stringify(j,null,2);
+}
+
+// Órdenes admin
+async function listOrdenes(){ const r=await fetch('/api/ordenes'); const j=await r.json(); document.getElementById('ordenesOut').textContent = JSON.stringify(j,null,2); }
+async function crearOrden(){
+  const codigoInmueble = document.getElementById('oCodigo').value;
+  const nombre = document.getElementById('oNombre').value;
+  const telefono = document.getElementById('oTel').value;
+  const descripcion = document.getElementById('oDesc').value;
+  const r = await fetch('/api/ordenes',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({codigoInmueble,nombre,telefono,descripcion})});
+  const j = await r.json(); document.getElementById('ordenesOut').textContent = JSON.stringify(j,null,2);
+}
+async function asignar(){
+  const oid = document.getElementById('asigId').value;
+  const tecnicoId = parseInt(document.getElementById('asigTec').value);
+  const r = await fetch('/api/ordenes/'+oid+'/asignar',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({tecnicoId,usuario})});
+  const j = await r.json(); document.getElementById('ordenesOut').textContent = JSON.stringify(j,null,2);
+}
+function descargarPDF(){ const oid=document.getElementById('pdfId').value; window.open('/api/ordenes/'+oid+'/pdf','_blank'); }
+
+// Técnico
+async function listarMisOrdenes(){
+  const r = await fetch('/api/ordenes?mine=1&tecnicoId='+id);
+  const j = await r.json();
+  document.getElementById('misOut').textContent = JSON.stringify(j,null,2);
+}
+async function tomar(){
+  const oid = document.getElementById('tomarId').value;
+  const r = await fetch('/api/ordenes/'+oid+'/tomar',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({tecnicoId:id, usuario})});
+  const j = await r.json(); document.getElementById('misOut').textContent = JSON.stringify(j,null,2);
+}
+async function cambiarEstado(){
+  const oid = document.getElementById('estadoId').value;
+  const estado = document.getElementById('estadoNew').value;
+  const r = await fetch('/api/ordenes/'+oid,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({estado,usuario})});
+  const j = await r.json(); document.getElementById('misOut').textContent = JSON.stringify(j,null,2);
+}
+async function subirEvidencia(){
+  const oid = document.getElementById('eviId').value;
+  const f = document.getElementById('eviFile').files[0];
+  if(!f){ alert('Selecciona archivo'); return; }
+  const fd = new FormData(); fd.append('evidencia', f); fd.append('usuario', usuario);
+  const r = await fetch('/api/ordenes/'+oid+'/evidencia',{ method:'POST', body: fd });
+  const j = await r.json(); document.getElementById('misOut').textContent = JSON.stringify(j,null,2);
+}
+
+// Firma
+const canvas = document.createElement('canvas'); // placeholder if element not on page
+window.addEventListener('DOMContentLoaded', ()=>{
+  const c = document.getElementById('sig'); if(!c) return;
+  const ctx = c.getContext('2d');
+  let drawing=false, prev=null;
+  c.addEventListener('pointerdown', e=>{ drawing=true; prev={x:e.offsetX,y:e.offsetY}; });
+  c.addEventListener('pointermove', e=>{
+    if(!drawing) return;
+    ctx.lineWidth = 2; ctx.lineCap='round';
+    ctx.beginPath(); ctx.moveTo(prev.x, prev.y); ctx.lineTo(e.offsetX, e.offsetY); ctx.stroke();
+    prev={x:e.offsetX,y:e.offsetY};
+  });
+  c.addEventListener('pointerup', ()=>drawing=false);
+  window.limpiarFirma = ()=>ctx.clearRect(0,0,c.width,c.height);
+  window.enviarFirma = async ()=>{
+    const oid = document.getElementById('sigId').value;
+    const data = c.toDataURL('image/png');
+    const r = await fetch('/api/ordenes/'+oid,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({firma:data,usuario})});
+    const j = await r.json(); document.getElementById('misOut').textContent = JSON.stringify(j,null,2);
+  };
+});
+
+setup();
+</script>
+</body>
+</html>

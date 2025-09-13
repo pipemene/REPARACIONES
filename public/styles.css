@@ -1,13 +1,17 @@
 
 :root { --bg:#0b1020; --fg:#e9eefb; --muted:#8fa3bf; --card:#151c34; --accent:#6aa0ff; }
 *{box-sizing:border-box} body{margin:0;font-family:Inter,system-ui,Arial;background:var(--bg);color:var(--fg);}
-.container{max-width:1100px;margin:30px auto;padding:20px;}
-h1{margin:0 0 10px} .grid{display:grid;gap:16px;grid-template-columns:repeat(12,1fr);}
-.card{grid-column:span 12;background:var(--card);border-radius:16px;padding:16px;border:1px solid #233059;box-shadow:0 6px 20px #0005;}
-.hidden{display:none}
-label{display:block;margin:.5rem 0 .25rem;color:var(--muted)} input,select,textarea{width:100%;padding:10px;border-radius:10px;border:1px solid #2b3a63;background:#0f1530;color:var(--fg)}
-button{padding:10px 14px;border:0;border-radius:10px;background:var(--accent);color:#071225;font-weight:700;cursor:pointer;margin-top:8px}
+.container{max-width:520px;margin:60px auto;padding:20px;}
+h1{margin:0 0 10px}
+.card{background:var(--card);border-radius:16px;padding:16px;border:1px solid #233059;box-shadow:0 6px 20px #0005;}
+label{display:block;margin:.5rem 0 .25rem;color:var(--muted)} input,select,textarea{width:100%;padding:12px;border-radius:10px;border:1px solid #2b3a63;background:#0f1530;color:var(--fg)}
+button{width:100%;padding:12px;border:0;border-radius:10px;background:var(--accent);color:#071225;font-weight:700;cursor:pointer;margin-top:12px}
 pre{background:#0f1530;border:1px solid #2b3a63;padding:10px;border-radius:10px;overflow:auto;max-height:220px}
-.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.hidden{display:none}
 .badge{padding:3px 8px;border-radius:999px;background:#0f1530;border:1px solid #2b3a63;color:var(--muted);font-size:.8rem}
+/* Panel */
+.grid{max-width:1100px;margin:30px auto;display:grid;gap:16px;grid-template-columns:repeat(12,1fr);}
+.card-wide{grid-column:span 12;background:var(--card);border-radius:16px;padding:16px;border:1px solid #233059;box-shadow:0 6px 20px #0005;}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+table{width:100%;border-collapse:collapse} th,td{border-bottom:1px solid #2b3a63;padding:6px 8px;text-align:left}
 canvas{background:#fff;border-radius:10px}
