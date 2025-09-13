@@ -32,6 +32,7 @@ async function doLogin(){
   const r = await fetch('/api/login', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({usuario,password}) });
   const j = await r.json();
   if(j && !j.error){
+    try{ sessionStorage.setItem('session', JSON.stringify(j)); }catch(e){}
     const q = new URLSearchParams({ rol:j.rol, id:j.id, usuario:j.usuario });
     window.location.href = '/panel.html?'+q.toString();
   } else {

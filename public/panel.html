@@ -15,7 +15,8 @@
     <button class="btn" onclick="logout()">Cerrar sesión</button>
   </div>
   <div class="container">
-    <nav class="tabs" id="tabs" class="hidden"></nav>
+    <div id="err" class="notice" style="display:none"></div>
+    <nav class="tabs" id="tabs"></nav>
 
     <!-- Secciones -->
     <section id="tab-usuarios" class="card hidden">
@@ -85,7 +86,14 @@
 
 <script>
 const params = new URLSearchParams(location.search);
-const rol = params.get('rol'); const id = parseInt(params.get('id')); const usuario = params.get('usuario');
+let rol = params.get('rol'); let id = parseInt(params.get('id')); let usuario = params.get('usuario');
+try{
+  if(!rol || !id || !usuario){
+    const s = JSON.parse(sessionStorage.getItem('session')||'null');
+    if(s){ rol = s.rol; id = s.id; usuario = s.usuario; }
+  }
+}catch(e){}
+
 const who = document.getElementById('who');
 const tabs = document.getElementById('tabs');
 
@@ -113,10 +121,11 @@ function activateTab(id){
 
 // Setup UI by role
 async function setup(){
+  try{
   // Auto-redirect if params missing
   if(!rol){ location.href = '/'; return; }
   setWho();
-  tabs.innerHTML = '';
+  tabs.innerHTML = ''; tabs.style.display='flex';
   // Tabs config
   if(rol==='superadmin'){
     tabs.appendChild(navButton('tab-usuarios','Usuarios', true));
@@ -143,6 +152,8 @@ async function setup(){
     showEl('firmaControls', true);
   }
 }
+
+  } catch(err){ const e=document.getElementById('err'); e.style.display='block'; e.textContent='Error inicializando: '+err.message; }
 
 // Usuarios
 async function listUsers(){
@@ -252,7 +263,7 @@ window.addEventListener('DOMContentLoaded', ()=>{
   };
 });
 
-setup();
+setup().catch(err=>{ const e=document.getElementById('err'); e.style.display='block'; e.textContent='Error en panel: '+err.message; });
 </script>
 </body>
 </html>
