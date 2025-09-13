@@ -25,3 +25,31 @@ nav.tabs button.active{background:#1d4ed8;color:#fff;border-color:#1d4ed8}
 canvas{background:#fff;border-radius:10px;border:1px solid var(--border)}
 
 .notice{background:#fff7cd;border:1px solid #facc15;color:#78350f;padding:10px;border-radius:10px}
+
+
+/* Login page styling */
+.login-body {
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  margin: 0;
+}
+.login-container {
+  text-align: center;
+}
+.logo-box {
+  margin-bottom: 30px;
+}
+.logo {
+  max-width: 280px;
+}
+.login-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 30px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+  display: inline-block;
+  text-align: left;
+}

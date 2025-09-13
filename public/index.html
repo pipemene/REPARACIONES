@@ -1,4 +1,3 @@
-
 <!doctype html>
 <html>
 <head>
@@ -7,14 +6,13 @@
   <title>Reparaciones · Login</title>
   <link rel="stylesheet" href="/styles.css" />
 </head>
-<body>
-  <div class="topbar">
-    <img src="/logo.png" alt="Blue Home" />
-    <div class="sp"></div>
-  </div>
-  <div class="container">
-    <div class="login-wrap card">
-      <h2>Iniciar sesión</h2>
+<body class="login-body">
+  <div class="login-container">
+    <div class="logo-box">
+      <img src="/logo.png" alt="Blue Home Inmobiliaria" class="logo">
+    </div>
+    <div class="card login-card">
+      <h1>Iniciar sesión</h1>
       <label>Usuario</label>
       <input id="lUser" placeholder="Usuario" autofocus />
       <label>Contraseña</label>
@@ -26,10 +24,9 @@
 
 <script>
 async function doLogin(){
-  const usuario = document.getElementById('lUser').value.trim();
+  const usuario = document.getElementById('lUser').value;
   const password = document.getElementById('lPass').value;
-  if(!usuario || !password){ alert('Completa usuario y contraseña'); return; }
-  const r = await fetch('/api/login', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({usuario,password}) });
+  const r = await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body: JSON.stringify({usuario,password})});
   const j = await r.json();
   if(j && !j.error){
     try{ sessionStorage.setItem('session', JSON.stringify(j)); }catch(e){}
@@ -37,8 +34,7 @@ async function doLogin(){
     window.location.href = '/panel.html?'+q.toString();
   } else {
     document.getElementById('out').classList.remove('hidden');
-    document.getElementById('out').textContent = JSON.stringify(j, null, 2);
-    alert(j.error || 'Login falló');
+    document.getElementById('out').textContent = j.error || 'Error';
   }
 }
 </script>
