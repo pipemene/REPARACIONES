@@ -4,22 +4,152 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Gestor de Reparaciones</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
-<body>
-  <h1>Login Técnico</h1>
-  <form id="loginForm">
-    <input type="email" id="email" placeholder="Email" required><br><br>
-    <input type="password" id="password" placeholder="Contraseña" required><br><br>
-    <button type="submit">Ingresar</button>
-  </form>
+<body class="bg-light">
+  <div class="container mt-5">
+    <h1 class="text-center mb-4">Gestor de Reparaciones</h1>
 
-  <h2 id="bienvenida"></h2>
-  <button id="verMisOrdenes" style="display:none;">Ver Mis Órdenes</button>
-  <pre id="misOrdenes"></pre>
+    <!-- Login -->
+    <div id="loginCard" class="card p-4 shadow-sm">
+      <h3 class="mb-3">Login Técnico</h3>
+      <form id="loginForm">
+        <div class="mb-3">
+          <input type="email" id="email" class="form-control" placeholder="Email" required>
+        </div>
+        <div class="mb-3">
+          <input type="password" id="password" class="form-control" placeholder="Contraseña" required>
+        </div>
+        <button type="submit" class="btn btn-primary w-100">Ingresar</button>
+      </form>
+    </div>
 
+    <!-- Dashboard -->
+    <div id="dashboard" style="display:none;">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3>Bienvenido, <span id="tecnicoNombre"></span></h3>
+        <button id="logoutBtn" class="btn btn-danger btn-sm">Cerrar sesión</button>
+      </div>
+
+      <h4>Mis Órdenes</h4>
+      <table class="table table-striped" id="ordenesTable">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Cliente</th>
+            <th>Descripción</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Modal Detalle -->
+  <div class="modal fade" id="detalleModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Detalle de la Orden</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body" id="detalleBody"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Evidencia -->
+  <div class="modal fade" id="evidenciaModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Subir Evidencia</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <input type="file" id="evidenciaFile" class="form-control" accept="image/*" capture="camera">
+          <button class="btn btn-success mt-3 w-100" id="guardarEvidenciaBtn">Guardar Evidencia</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script>
     let tecnicoId = null;
     let tecnicoNombre = null;
+    let ordenSeleccionada = null;
+
+    async function cargarOrdenes() {
+      const res = await fetch('/api/mis-ordenes/' + tecnicoId);
+      const ordenes = await res.json();
+      const tbody = document.querySelector('#ordenesTable tbody');
+      tbody.innerHTML = '';
+      ordenes.forEach(o => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${o.id}</td>
+          <td>${o.nombre}</td>
+          <td>${o.descripcion}</td>
+          <td>${o.estado}</td>
+          <td>
+            <button class="btn btn-info btn-sm" onclick="verDetalle(${o.id})">Detalle</button>
+            <button class="btn btn-warning btn-sm" onclick="abrirEvidencia(${o.id})">Evidencia</button>
+            <button class="btn btn-success btn-sm" onclick="finalizarOrden(${o.id})">Finalizar</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    async function verDetalle(id) {
+      const res = await fetch('/api/ordenes');
+      const ordenes = await res.json();
+      const orden = ordenes.find(o => o.id === id);
+      document.getElementById('detalleBody').innerHTML = `
+        <p><b>ID:</b> ${orden.id}</p>
+        <p><b>Cliente:</b> ${orden.nombre}</p>
+        <p><b>Teléfono:</b> ${orden.telefono}</p>
+        <p><b>Descripción:</b> ${orden.descripcion}</p>
+        <p><b>Estado:</b> ${orden.estado}</p>
+      `;
+      new bootstrap.Modal(document.getElementById('detalleModal')).show();
+    }
+
+    function abrirEvidencia(id) {
+      ordenSeleccionada = id;
+      new bootstrap.Modal(document.getElementById('evidenciaModal')).show();
+    }
+
+    document.getElementById('guardarEvidenciaBtn').addEventListener('click', async () => {
+      const input = document.getElementById('evidenciaFile');
+      if (!input.files.length) {
+        alert('Selecciona una foto primero');
+        return;
+      }
+      const formData = new FormData();
+      formData.append('evidencia', input.files[0]);
+      const res = await fetch('/api/ordenes/' + ordenSeleccionada + '/evidencia', {
+        method: 'POST',
+        body: formData
+      });
+      const data = await res.json();
+      alert('Evidencia subida: ' + data.archivo);
+      bootstrap.Modal.getInstance(document.getElementById('evidenciaModal')).hide();
+      cargarOrdenes();
+    });
+
+    async function finalizarOrden(id) {
+      await fetch('/api/ordenes/' + id, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ estado: 'finalizada' })
+      });
+      alert('Orden finalizada');
+      cargarOrdenes();
+    }
 
     document.getElementById('loginForm').addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -34,17 +164,20 @@
       if (data.tecnicoId) {
         tecnicoId = data.tecnicoId;
         tecnicoNombre = data.nombre;
-        document.getElementById('bienvenida').textContent = 'Bienvenido, ' + tecnicoNombre;
-        document.getElementById('verMisOrdenes').style.display = 'block';
+        document.getElementById('loginCard').style.display = 'none';
+        document.getElementById('dashboard').style.display = 'block';
+        document.getElementById('tecnicoNombre').textContent = tecnicoNombre;
+        cargarOrdenes();
       } else {
         alert('Credenciales inválidas');
       }
     });
 
-    document.getElementById('verMisOrdenes').addEventListener('click', async () => {
-      const res = await fetch('/api/mis-ordenes/' + tecnicoId);
-      const data = await res.json();
-      document.getElementById('misOrdenes').textContent = JSON.stringify(data, null, 2);
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+      tecnicoId = null;
+      tecnicoNombre = null;
+      document.getElementById('dashboard').style.display = 'none';
+      document.getElementById('loginCard').style.display = 'block';
     });
   </script>
 </body>
