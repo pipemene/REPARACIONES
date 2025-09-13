@@ -8,441 +8,306 @@
 </head>
 <body class="bg-light">
   <div class="container mt-5">
-    <h1 class="text-center mb-2">Gestor de Reparaciones</h1>
-<div id="apiStatusBar" class="alert alert-warning py-2" role="alert" style="display:none;"></div>
-
+    <h1 class="text-center mb-4">Gestor de Reparaciones</h1>
 
     <!-- Login -->
     <div id="loginCard" class="card p-4 shadow-sm">
       <h3 class="mb-3">Login</h3>
       <form id="loginForm">
-        <div class="mb-3"><input type="text" id="usuario" class="form-control" placeholder="Usuario" required/></div>
-        <div class="mb-3"><input type="password" id="password" class="form-control" placeholder="Contraseña" required/></div>
-        <button id="btnLogin" type="submit" class="btn btn-primary w-100">Ingresar</button>
-      </form>
-      <div class="mt-2">
-        <div class="input-group input-group-sm mb-2">
-          <span class="input-group-text">API</span>
-          <input id="apiBaseInput" class="form-control" placeholder="https://tuapp.up.railway.app (opcional)"/>
-          <button id="btnGuardarAPI" class="btn btn-outline-primary" type="button">Guardar</button>
+        <div class="mb-3">
+          <input type="text" id="usuario" class="form-control" placeholder="Usuario" required/>
         </div>
-      </div>
-      <div class="d-flex justify-content-between mt-2">
-        <button id="btnProbarAPI" type="button" class="btn btn-outline-secondary btn-sm" (async()=>{ try{ const u=(typeof api===\'function\'? api(\'/api/health\') : \'/api/health\'); alert(\'Probando \'+u); const r=await fetch(u,{cache:\'no-store\'}); const ok=r&&r.ok; const el=document.getElementById(\'apiStatus\')||document.getElementById(\'apiStatusBar\'); if(el){ el.textContent = ok?\'API OK ✅\':(\'API ERROR ❌ \'+(r?r.status:\'sin respuesta\')); el.className = ok?\'text-success\':\'text-danger\'; if(el.id===\'apiStatusBar\'){ el.className = \'alert \'+(ok?\'alert-success\':\'alert-danger\')+\' py-2\'; el.style.display=\'block\'; } } }catch(e){ alert(\'No se pudo contactar la API\'); const el=document.getElementById(\'apiStatus\')||document.getElementById(\'apiStatusBar\'); if(el){ el.textContent=\'API no responde ❌\'; if(el.id===\'apiStatusBar\'){ el.className=\'alert alert-danger py-2\'; el.style.display=\'block\'; } else { el.className=\'text-danger\'; } } } })()">Probar API</button>
-        <small id="apiStatus" class="text-muted"></small>
-<div class="form-text">URL efectiva de health: <code id="apiEffectiveUrl">/api/health</code></div>
-      </div>
+        <div class="mb-3">
+          <input type="password" id="password" class="form-control" placeholder="Contraseña" required/>
+        </div>
+        <button type="submit" class="btn btn-primary w-100">Ingresar</button>
+      </form>
     </div>
 
-    <!-- Admin/Superadmin Dashboard -->
-    <div id="dashboardAdmin" style="display:none;">
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <h3><span id="rolBadge"></span> Panel - <span id="adminNombre"></span></h3>
-        <button id="logoutBtnAdmin" type="button" class="btn btn-danger btn-sm">Cerrar sesión</button>
+    <!-- Dashboard Superadmin -->
+    <div id="dashboardSuperadmin" style="display:none;">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3>Panel Superadmin - <span id="superadminNombre"></span> 🔑</h3>
+        <button id="logoutBtnSuperadmin" class="btn btn-danger btn-sm">Cerrar sesión</button>
       </div>
 
-      <ul class="nav nav-tabs">
-        <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tabOrdenes">Órdenes</button></li>
-        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabUsuarios">Usuarios</button></li>
+      <!-- Tabs -->
+      <ul class="nav nav-tabs" id="superadminTabs">
+        <li class="nav-item">
+          <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#ordenesTab">Órdenes</button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link" data-bs-toggle="tab" data-bs-target="#usuariosTab">Usuarios</button>
+        </li>
       </ul>
 
       <div class="tab-content mt-3">
-        <div class="tab-pane fade show active" id="tabOrdenes">
-          <div class="card p-3 mb-3">
-            <h5 class="mb-2">Crear Orden</h5>
-            <form id="crearOrdenForm" class="row g-3">
-              <div class="col-md-3"><input id="codigoInmueble" class="form-control" placeholder="Código inmueble" required/></div>
-              <div class="col-md-3"><input id="cliente" class="form-control" placeholder="Cliente" required/></div>
-              <div class="col-md-3"><input id="telefono" class="form-control" placeholder="Teléfono" required/></div>
-              <div class="col-md-3"><textarea id="descripcion" class="form-control" placeholder="Descripción" required></textarea></div>
-              <div class="col-12"><button id="btnCrearOrden" type="submit" class="btn btn-primary">Crear</button></div>
-            </form>
-          </div>
+        <!-- Tab Órdenes -->
+        <div class="tab-pane fade show active" id="ordenesTab">
+          <h4>Crear Orden</h4>
+          <form id="crearOrdenForm" class="row g-3 mb-4">
+            <div class="col-md-3"><input type="text" id="codigoInmueble" class="form-control" placeholder="Código inmueble" required/></div>
+            <div class="col-md-3"><input type="text" id="cliente" class="form-control" placeholder="Nombre cliente" required/></div>
+            <div class="col-md-3"><input type="text" id="telefono" class="form-control" placeholder="Teléfono" required/></div>
+            <div class="col-md-3"><textarea id="descripcion" class="form-control" placeholder="Descripción" required></textarea></div>
+            <div class="col-12"><button type="submit" class="btn btn-primary">Crear Orden</button></div>
+          </form>
 
+          <h4>Órdenes</h4>
           <table class="table table-bordered" id="ordenesTable">
-            <thead><tr><th>ID</th><th>Cliente</th><th>Descripción</th><th>Estado</th><th>Técnico</th><th>Acciones</th></tr></thead>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Cliente</th>
+                <th>Descripción</th>
+                <th>Estado</th>
+                <th>Técnico</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
             <tbody></tbody>
           </table>
         </div>
 
-        <div class="tab-pane fade" id="tabUsuarios">
-          <div class="card p-3 mb-3">
-            <h5 class="mb-2">Crear Usuario</h5>
-            <form id="crearUsuarioForm" class="row g-3">
-              <div class="col-md-3"><input id="nuevoUsuario" class="form-control" placeholder="Usuario" required/></div>
-              <div class="col-md-3"><input id="nuevoPassword" type="password" class="form-control" placeholder="Contraseña" required/></div>
-              <div class="col-md-3"><select id="nuevoRol" class="form-select"><option value="tecnico">Técnico</option><option value="admin">Admin</option></select></div>
-              <div class="col-md-3"><button id="btnCrearUsuario" type="submit" class="btn btn-success w-100">Crear Usuario</button></div>
-            </form>
-          </div>
+        <!-- Tab Usuarios -->
+        <div class="tab-pane fade" id="usuariosTab">
+          <h4>Gestión de Usuarios</h4>
+          <form id="crearUsuarioForm" class="row g-3 mb-3">
+            <div class="col-md-3"><input type="text" id="nuevoUsuario" class="form-control" placeholder="Usuario" required/></div>
+            <div class="col-md-3"><input type="password" id="nuevoPassword" class="form-control" placeholder="Contraseña" required/></div>
+            <div class="col-md-3">
+              <select id="nuevoRol" class="form-select">
+                <option value="tecnico">Técnico</option>
+                <option value="admin">Admin</option>
+              </select>
+            </div>
+            <div class="col-md-3"><button type="submit" class="btn btn-success w-100">Crear Usuario</button></div>
+          </form>
 
           <table class="table table-bordered" id="usuariosTable">
-            <thead><tr><th>ID</th><th>Usuario</th><th>Rol</th><th>Acciones</th></tr></thead>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Usuario</th>
+                <th>Rol</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
             <tbody></tbody>
           </table>
         </div>
       </div>
-    </div>
-
-    <!-- Técnico Dashboard -->
-    <div id="dashboardTecnico" style="display:none;">
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <h3>Panel Técnico - <span id="tecnicoNombre"></span></h3>
-        <button id="logoutBtnTec" type="button" class="btn btn-danger btn-sm">Cerrar sesión</button>
-      </div>
-      <table class="table table-striped" id="misOrdenesTable">
-        <thead><tr><th>ID</th><th>Cliente</th><th>Descripción</th><th>Estado</th><th>Acciones</th></tr></thead>
-        <tbody></tbody>
-      </table>
     </div>
   </div>
 
-  <!-- Modal Detalle Orden -->
-  <div class="modal fade" id="detalleModal" tabindex="-1">
-    <div class="modal-dialog modal-lg"><div class="modal-content">
-      <div class="modal-header"><h5 class="modal-title">Detalle de Orden</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
-      <div class="modal-body">
-        <div class="row g-2">
-          <div class="col-md-3"><strong>ID:</strong> <span id="detId"></span></div>
-          <div class="col-md-3"><strong>Cliente:</strong> <span id="detCliente"></span></div>
-          <div class="col-md-3"><strong>Estado:</strong>
-            <select id="detEstado" class="form-select form-select-sm">
-              <option value="pendiente">pendiente</option>
-              <option value="en proceso">en proceso</option>
-              <option value="finalizada">finalizada</option>
-              <option value="cancelada">cancelada</option>
-              <option value="esperando repuestos">esperando repuestos</option>
+  <!-- Modal Editar Usuario -->
+  <div class="modal fade" id="editarUsuarioModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header"><h5 class="modal-title">Editar Usuario</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body">
+          <input type="hidden" id="editarId"/>
+          <div class="mb-3"><label class="form-label">Usuario</label><input type="text" id="editarUsuario" class="form-control"/></div>
+          <div class="mb-3"><label class="form-label">Nueva Contraseña (opcional)</label><input type="password" id="editarPassword" class="form-control"/></div>
+          <div class="mb-3">
+            <label class="form-label">Rol</label>
+            <select id="editarRol" class="form-select">
+              <option value="tecnico">Técnico</option>
+              <option value="admin">Admin</option>
             </select>
           </div>
-        </div>
-        <div class="mt-2"><strong>Descripción:</strong><div id="detDesc" class="border rounded p-2 bg-light"></div></div>
-        <div class="mt-3 row g-2">
-          <div class="col-md-8">
-            <label class="form-label">Agregar nota</label>
-            <textarea id="detNota" class="form-control" placeholder="Escribe una actualización..."></textarea>
-          </div>
-          <div class="col-md-4 d-flex align-items-end">
-            <button id="btnGuardarNota" type="button" class="btn btn-primary w-100">Guardar nota</button>
-          </div>
-        </div>
-        <div class="mt-3 row g-2">
-          <div class="col-md-8">
-            <label class="form-label">Subir evidencia</label>
-            <input type="file" id="detEvidencia" class="form-control" accept="image/*" capture="environment"/>
-          </div>
-          <div class="col-md-4 d-flex align-items-end">
-            <button id="btnSubirEvidencia" type="button" class="btn btn-secondary w-100">Subir evidencia</button>
-          </div>
-        </div>
-        <div class="mt-3">
-          <h6>Historial</h6>
-          <ul id="detHistorial" class="list-group"></ul>
+          <button class="btn btn-primary w-100" id="guardarCambiosBtn">Guardar Cambios</button>
         </div>
       </div>
-    </div></div>
+    </div>
+  </div>
+
+  <!-- Modal Historial -->
+  <div class="modal fade" id="historialModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header"><h5 class="modal-title">Historial de Cambios</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body"><ul id="historialList" class="list-group"></ul></div>
+      </div>
+    </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script>
     let usuarioActivo = null;
     let usuariosGlobal = [];
-    let ordenDetalleId = null;
-    let wired = { crearOrden: false };
 
-    function setSession(d){ localStorage.setItem('session', JSON.stringify(d)); }
-    function getSession(){ try { return JSON.parse(localStorage.getItem('session')||'null'); } catch { return null; } }
-    function clearSession(){ localStorage.removeItem('session'); }
-
-    async function fetchJSON(url, opts={}){ const r = await fetch(url, opts); const j = await r.json().catch(()=>null); return {ok:r.ok, status:r.status, data:j}; }
-
-    async function cargarUsuarios(){
-      const r = await fetchJSON('/api/usuarios'); if(!r.ok) return;
-      usuariosGlobal = r.data || [];
-      const tbody = document.querySelector('#usuariosTable tbody'); if (!tbody) return;
+    async function cargarUsuarios() {
+      const res = await fetch('/api/usuarios');
+      usuariosGlobal = await res.json();
+      const tbody = document.querySelector('#usuariosTable tbody');
       tbody.innerHTML = '';
       usuariosGlobal.forEach(u => {
         const tr = document.createElement('tr');
-        tr.innerHTML = \`
-          <td>\${u.id}</td>
-          <td>\${u.usuario}</td>
-          <td>\${u.rol}</td>
+        tr.innerHTML = `
+          <td>${u.id}</td>
+          <td>${u.usuario}</td>
+          <td>${u.rol}</td>
           <td>
-            <button type="button" class="btn btn-warning btn-sm" abrirEditar(\${u.id}, '\${u.usuario}', '\${u.rol}')">Editar</button>
-            <button type="button" class="btn btn-danger btn-sm" eliminarUsuario(\${u.id})">Eliminar</button>
-          </td>\`;
+            <button class="btn btn-warning btn-sm" onclick="abrirEditar(${u.id}, '${u.usuario}', '${u.rol}')">Editar</button>
+            <button class="btn btn-danger btn-sm" onclick="eliminarUsuario(${u.id})">Eliminar</button>
+          </td>`;
         tbody.appendChild(tr);
       });
     }
 
-    async function cargarOrdenes(){
-      const r = await fetchJSON('/api/ordenes'); if(!r.ok) return;
-      const ordenes = r.data || [];
-      const tbody = document.querySelector('#ordenesTable tbody'); if (!tbody) return;
+    async function eliminarUsuario(id) {
+      await fetch('/api/usuarios/' + id, { method: 'DELETE' });
+      await cargarUsuarios();
+    }
+
+    function abrirEditar(id, usuario, rol) {
+      document.getElementById('editarId').value = id;
+      document.getElementById('editarUsuario').value = usuario;
+      document.getElementById('editarRol').value = rol;
+      document.getElementById('editarPassword').value = '';
+      new bootstrap.Modal(document.getElementById('editarUsuarioModal')).show();
+    }
+
+    document.getElementById('guardarCambiosBtn').addEventListener('click', async () => {
+      const id = document.getElementById('editarId').value;
+      const usuario = document.getElementById('editarUsuario').value;
+      const password = document.getElementById('editarPassword').value;
+      const rol = document.getElementById('editarRol').value;
+      await fetch('/api/usuarios/' + id, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ usuario, password, rol })
+      });
+      bootstrap.Modal.getInstance(document.getElementById('editarUsuarioModal')).hide();
+      await cargarUsuarios();
+      await cargarOrdenes(); // refresh tech names in table
+    });
+
+    document.getElementById('crearUsuarioForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const usuario = document.getElementById('nuevoUsuario').value;
+      const password = document.getElementById('nuevoPassword').value;
+      const rol = document.getElementById('nuevoRol').value;
+      await fetch('/api/usuarios', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ usuario, password, rol })
+      });
+      e.target.reset();
+      await cargarUsuarios();
+      await cargarOrdenes();
+    });
+
+    async function cargarOrdenes() {
+      const res = await fetch('/api/ordenes');
+      const ordenes = await res.json();
+      const tbody = document.querySelector('#ordenesTable tbody');
       tbody.innerHTML = '';
       ordenes.forEach(o => {
         const tecnico = usuariosGlobal.find(u => u.id === o.tecnicoId);
         const tr = document.createElement('tr');
-        tr.innerHTML = \`
-          <td>\${o.id}</td>
-          <td>\${o.nombre}</td>
-          <td>\${o.descripcion}</td>
+        tr.innerHTML = `
+          <td>${o.id}</td>
+          <td>${o.nombre}</td>
+          <td>${o.descripcion}</td>
           <td>
-            <select class="form-select form-select-sm" onchange="cambiarEstado(\${o.id}, this.value)">
-              \${['pendiente','en proceso','finalizada','cancelada','esperando repuestos'].map(s => \`<option value="\${s}" \${o.estado===s?'selected':''}>\${s}</option>\`).join('')}
+            <select class="form-select form-select-sm" onchange="cambiarEstado(${o.id}, this.value)">
+              ${['pendiente','en proceso','finalizada','cancelada','esperando repuestos'].map(s => `<option value="${s}" ${o.estado===s?'selected':''}>${s}</option>`).join('')}
             </select>
           </td>
           <td>
-            <select onchange="asignarTecnico(\${o.id}, this.value)" class="form-select form-select-sm">
-              <option value="">\${tecnico ? tecnico.usuario : 'Sin asignar'}</option>
-              \${usuariosGlobal.filter(u => u.rol==='tecnico').map(u => \`<option value="\${u.id}">\${u.usuario}</option>\`).join('')}
+            <select onchange="asignarTecnico(${o.id}, this.value)" class="form-select form-select-sm">
+              <option value="">${tecnico ? tecnico.usuario : 'Sin asignar'}</option>
+              ${usuariosGlobal.filter(u => u.rol === 'tecnico').map(u => `<option value="${u.id}">${u.usuario}</option>`)}
             </select>
           </td>
-          <td class="d-flex gap-1">
-            <a class="btn btn-secondary btn-sm" href="/api/ordenes/\${o.id}/pdf" target="_blank">PDF</a>
-            <button type="button" class="btn btn-primary btn-sm" verDetalle(\${o.id})">Ver</button>
-            <button type="button" class="btn btn-info btn-sm" verHistorial(\${o.id})">Historial</button>
-          </td>\`;
+          <td>
+            <a class="btn btn-secondary btn-sm" href="/api/ordenes/${o.id}/pdf" target="_blank">PDF</a>
+            <button class="btn btn-info btn-sm" onclick="verHistorial(${o.id})">Historial</button>
+          </td>`;
         tbody.appendChild(tr);
       });
     }
 
-    async function cargarMisOrdenes(){
-      const tbody = document.querySelector('#misOrdenesTable tbody'); if (!tbody) return;
-      const r = await fetchJSON('/api/mis-ordenes/' + usuarioActivo.id); if(!r.ok) return;
-      const mis = r.data || [];
-      tbody.innerHTML='';
-      mis.forEach(o => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = \`
-          <td>\${o.id}</td><td>\${o.nombre}</td><td>\${o.descripcion}</td><td>\${o.estado}</td>
-          <td class="d-flex gap-1">
-            <a class="btn btn-secondary btn-sm" href="/api/ordenes/\${o.id}/pdf" target="_blank">PDF</a>
-            <button type="button" class="btn btn-primary btn-sm" verDetalle(\${o.id})">Ver</button>
-          </td>\`;
-        tbody.appendChild(tr);
+    async function asignarTecnico(id, tecnicoId) {
+      if (!tecnicoId) return;
+      await fetch('/api/ordenes/' + id + '/asignar', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tecnicoId, usuario: usuarioActivo.usuario })
       });
-    }
-
-    async function asignarTecnico(id, tecnicoId){ if(!tecnicoId) return;
-      await fetchJSON('/api/ordenes/'+id+'/asignar', { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ tecnicoId, usuario: usuarioActivo.usuario }) });
       await cargarOrdenes();
     }
-    async function cambiarEstado(id, estado){
-      await fetchJSON('/api/ordenes/'+id, { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ estado, usuario: usuarioActivo.usuario }) });
-    }
-    async function verHistorial(id){
-      const r = await fetchJSON('/api/ordenes/'+id+'/historial'); if(!r.ok) return;
-      const list = r.data || [];
-      const ul = document.getElementById('detHistorial');
-      ul.innerHTML = '';
-      list.forEach(h => { const li = document.createElement('li'); li.className='list-group-item'; li.textContent = \`\${h.fecha} - \${h.usuario}: \${h.accion}\`; ul.appendChild(li); });
-      new bootstrap.Modal(document.getElementById('detalleModal')).show();
-    }
-    async function verDetalle(id){
-      ordenDetalleId = id;
-      const r = await fetch(api('/api/ordenes/'+id);
-      if(!r.ok){ alert('No se pudo cargar la orden'); return; }
-      const o = await r.json();
-      document.getElementById('detId').textContent = o.id;
-      document.getElementById('detCliente').textContent = o.nombre;
-      document.getElementById('detDesc').textContent = o.descripcion;
-      document.getElementById('detEstado').value = o.estado;
-      const h = await fetch(api('/api/ordenes/'+id+'/historial'); const hist = await h.json();
-      const ul = document.getElementById('detHistorial'); ul.innerHTML='';
-      hist.forEach(x => { const li=document.createElement('li'); li.className='list-group-item'; li.textContent = \`\${x.fecha} - \${x.usuario}: \${x.accion}\`; ul.appendChild(li); });
-      new bootstrap.Modal(document.getElementById('detalleModal')).show();
-    }
-    document.getElementById('btnGuardarNota').addEventListener('click', async () => {
-      const ta = document.getElementById('detNota'); const texto = ta.value.trim(); if(!texto) return alert('Escribe una nota');
-      await fetchJSON('/api/ordenes/'+ordenDetalleId+'/nota', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ texto, usuario: usuarioActivo.usuario }) });
-      ta.value=''; verDetalle(ordenDetalleId);
-    });
-    document.getElementById('btnSubirEvidencia').addEventListener('click', async () => {
-      const file = document.getElementById('detEvidencia').files[0]; if(!file) return alert('Selecciona una imagen');
-      const fd = new FormData(); fd.append('evidencia', file); fd.append('usuario', usuarioActivo.usuario);
-      await fetch(api('/api/ordenes/'+ordenDetalleId+'/evidencia', { method:'POST', body: fd });
-      document.getElementById('detEvidencia').value=''; verDetalle(ordenDetalleId);
-    });
 
-    function wireCrearOrden(){
-      if (wireCrearOrden._wired) return;
-      const form = document.getElementById('crearOrdenForm'); if (!form) return;
-      form.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const btn = document.getElementById('btnCrearOrden'); if (btn) { btn.disabled = true; btn.textContent = 'Creando...'; }
-        try {
-          const orden = {
-            codigoInmueble: document.getElementById('codigoInmueble').value.trim(),
-            nombre: document.getElementById('cliente').value.trim(),
-            telefono: document.getElementById('telefono').value.trim(),
-            descripcion: document.getElementById('descripcion').value.trim()
-          };
-          if (!orden.codigoInmueble || !orden.nombre || !orden.telefono || !orden.descripcion) { alert('Completa todos los campos'); return; }
-          const r = await fetch(api('/api/ordenes', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(orden) });
-          const j = await r.json().catch(()=>({}));
-          if (!r.ok){ alert('No se pudo crear: ' + (j.error || r.statusText)); return; }
-          alert('✅ Orden creada (#'+j.id+')');
-          form.reset(); await cargarOrdenes();
-        } finally { if (btn) { btn.disabled = false; btn.textContent = 'Crear'; } }
+    async function cambiarEstado(id, estado) {
+      await fetch('/api/ordenes/' + id, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ estado, usuario: usuarioActivo.usuario })
       });
-      wireCrearOrden._wired = true;
     }
 
-    // Login + boot
+    async function verHistorial(id) {
+      const res = await fetch('/api/ordenes/' + id + '/historial');
+      const historial = await res.json();
+      const list = document.getElementById('historialList');
+      list.innerHTML = '';
+      historial.forEach(h => {
+        const li = document.createElement('li');
+        li.className = 'list-group-item';
+        li.textContent = `${h.fecha} - ${h.usuario}: ${h.accion}`;
+        list.appendChild(li);
+      });
+      new bootstrap.Modal(document.getElementById('historialModal')).show();
+    }
+
+    // Login
     document.getElementById('loginForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const usuario = document.getElementById('usuario').value;
       const password = document.getElementById('password').value;
-      const r = await fetch(api('/api/login', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ usuario, password }) });
-      const d = await r.json();
-      if (!d.usuario){ alert(d.error || 'Error de acceso'); return; }
-      usuarioActivo = d; setSession(d);
-      document.getElementById('loginCard').style.display='none';
-      if (d.rol === 'tecnico'){
-        document.getElementById('dashboardTecnico').style.display='block';
-        document.getElementById('tecnicoNombre').textContent = d.usuario;
-        await cargarMisOrdenes();
+      const res = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ usuario, password })
+      });
+      const data = await res.json();
+      if (data.usuario && data.rol === 'superadmin') {
+        usuarioActivo = data;
+        document.getElementById('loginCard').style.display = 'none';
+        document.getElementById('dashboardSuperadmin').style.display = 'block';
+        document.getElementById('superadminNombre').textContent = data.usuario;
+        await cargarUsuarios();
+        await cargarOrdenes();
       } else {
-        document.getElementById('dashboardAdmin').style.display='block';
-        document.getElementById('adminNombre').textContent = d.usuario;
-        document.getElementById('rolBadge').textContent = d.rol === 'superadmin' ? '🔑 Superadmin' : '👤 Admin';
-        await cargarUsuarios(); await cargarOrdenes(); wireCrearOrden();
-      }
-    });
-    document.getElementById('logoutBtnAdmin').addEventListener('click', () => { localStorage.removeItem('session'); location.reload(); });
-    document.getElementById('logoutBtnTec').addEventListener('click', () => { localStorage.removeItem('session'); location.reload(); });
-    async function bootFromSession(){
-      const d = getSession(); if(!d) return;
-      usuarioActivo = d; document.getElementById('loginCard').style.display='none';
-      if (d.rol === 'tecnico'){
-        document.getElementById('dashboardTecnico').style.display='block';
-        document.getElementById('tecnicoNombre').textContent = d.usuario;
-        await cargarMisOrdenes();
-      } else {
-        document.getElementById('dashboardAdmin').style.display='block';
-        document.getElementById('adminNombre').textContent = d.usuario;
-        document.getElementById('rolBadge').textContent = d.rol === 'superadmin' ? '🔑 Superadmin' : '👤 Admin';
-        await cargarUsuarios(); await cargarOrdenes(); wireCrearOrden();
-      }
-    }
-    document.addEventListener('DOMContentLoaded', bootFromSession);
-
-    
-    // ===== API BASE handling =====
-    function getApiBase(){ return localStorage.getItem('API_BASE') || (window.API_BASE || ''); }
-    function setApiBase(url){ if(url){ localStorage.setItem('API_BASE', url); } else { localStorage.removeItem('API_BASE'); } }
-    function api(url){ const base = getApiBase(); return (base ? base.replace(/\/$/,'') : '') + url; }
-    (function wireApiBase(){
-      const inp = document.getElementById('apiBaseInput');
-      const btn = document.getElementById('btnGuardarAPI');
-      if (inp){ inp.value = getApiBase(); }
-      if (btn){ btn.addEventListener('click', ()=>{ setApiBase(inp.value.trim()); alert('API guardada'); }); }
-    })();
-
-    
-    // ===== Utils de status =====
-    function showStatus(msg, type='warning'){ 
-      const bar = document.getElementById('apiStatusBar'); 
-      if(!bar) return; 
-      bar.className = 'alert alert-' + type + ' py-2'; 
-      bar.style.display='block'; 
-      bar.textContent = msg; 
-    }
-    async function probeApi(){
-      try{
-        const url = api('/api/health');
-        const r = await fetch(url, { cache:'no-store' });
-        if(r.ok){ showStatus('API conectada: ' + url.replace('/api/health',''), 'success'); }
-        else { showStatus('API responde con error ' + r.status + ' en ' + url, 'danger'); }
-      }catch(e){
-        showStatus('No se pudo conectar a la API: ' + (e.message||e), 'danger');
-      }
-    }
-    document.addEventListener('DOMContentLoaded', probeApi);
-
-    (function(){try{const el=document.getElementById('apiEffectiveUrl'); if(!el) return; const base=(typeof getApiBase==='function')?(getApiBase()||''):(window.API_BASE||''); const url=(base?base.replace(/\/$/,''):'')+'/api/health'; el.textContent=url;}catch(e){}})();
-    // btnProbarAPI safe listener
-document.addEventListener('DOMContentLoaded', ()=>{
-  const btn = document.getElementById('btnProbarAPI');
-  if (!btn) return;
-  btn.addEventListener('click', async ()=>{
-    const u = (typeof api==='function'? api('/api/health') : '/api/health');
-    alert('Probando ' + u);
-    try{
-      const r = await fetch(u,{cache:'no-store'});
-      const ok = r && r.ok;
-      const el = document.getElementById('apiStatus')||document.getElementById('apiStatusBar');
-      if (el){
-        el.textContent = ok ? 'API OK ✅' : ('API ERROR ❌ ' + (r?r.status:'sin respuesta'));
-        if(el.id==='apiStatusBar'){
-          el.className = 'alert ' + (ok?'alert-success':'alert-danger') + ' py-2';
-          el.style.display='block';
-        }else{
-          el.className = ok?'text-success':'text-danger';
-        }
-      }
-    }catch(e){
-      alert('No se pudo contactar la API');
-    }
-  });
-});
-// Probar API handler
-    document.getElementById('btnProbarAPI')?.addEventListener('click', async ()=>{ alert('Probando ' + api('/api/health')); await probeApi();
-      const statusEl = document.getElementById('apiStatus');
-      try{
-        const r = await fetch(api('/api/health');
-        statusEl.textContent = r.ok ? 'API OK ✅' : 'API ERROR ❌ ('+r.status+')';
-      }catch(e){
-        statusEl.textContent = 'API no responde ❌';
+        alert('Acceso restringido');
       }
     });
 
-    // Usuarios edit/delete simples (prompt)
-    async function eliminarUsuario(id){ await fetchJSON('/api/usuarios/'+id, { method:'DELETE' }); await cargarUsuarios(); await cargarOrdenes(); }
-    function abrirEditar(id, usuario, rol){
-      const nuevoUsuario = prompt('Nuevo usuario', usuario); if (nuevoUsuario===null) return;
-      const nuevoPassword = prompt('Nueva contraseña (dejar vacío para no cambiar)', '');
-      const nuevoRol = prompt('Rol (tecnico/admin)', rol) || rol;
-      const payload = { usuario:nuevoUsuario, rol:nuevoRol }; if (nuevoPassword) payload.password = nuevoPassword;
-      fetchJSON('/api/usuarios/'+id, { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) }).then(()=>{ cargarUsuarios(); cargarOrdenes(); });
-    }
-// --- Fix: Probar API handler seguro (sin inline) ---
-document.addEventListener('DOMContentLoaded', ()=>{
-  const btn = document.getElementById('btnProbarAPI');
-  if (!btn) return;
-  btn.addEventListener('click', async ()=>{
-    const u = (typeof api==='function' ? api('/api/health') : '/api/health');
-    alert('Probando ' + u);
-    const statusEl = document.getElementById('apiStatus') || document.getElementById('apiStatusBar');
-    try{
-      const r = await fetch(u, { cache: 'no-store' });
-      const ok = r && r.ok;
-      if (statusEl){
-        if(statusEl.id==='apiStatusBar'){
-          statusEl.className = 'alert ' + (ok? 'alert-success':'alert-danger') + ' py-2';
-          statusEl.style.display = 'block';
-          statusEl.textContent = ok ? ('API conectada: ' + u.replace('/api/health','')) : ('API ERROR ❌ ' + r.status);
-        } else {
-          statusEl.className = ok? 'text-success':'text-danger';
-          statusEl.textContent = ok ? 'API OK ✅' : ('API ERROR ❌ ' + r.status);
-        }
-      }
-    }catch(e){
-      if (statusEl){
-        if(statusEl.id==='apiStatusBar'){
-          statusEl.className = 'alert alert-danger py-2';
-          statusEl.style.display = 'block';
-          statusEl.textContent = 'API no responde ❌';
-        } else {
-          statusEl.className = 'text-danger';
-          statusEl.textContent = 'API no responde ❌';
-        }
-      }
-      alert('No se pudo contactar la API');
-    }
-  }, { once: false });
-});
+    document.getElementById('logoutBtnSuperadmin').addEventListener('click', () => {
+      usuarioActivo = null;
+      document.getElementById('dashboardSuperadmin').style.display = 'none';
+      document.getElementById('loginCard').style.display = 'block';
+    });
 
+    // Create order
+    document.getElementById('crearOrdenForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const orden = {
+        codigoInmueble: document.getElementById('codigoInmueble').value,
+        nombre: document.getElementById('cliente').value,
+        telefono: document.getElementById('telefono').value,
+        descripcion: document.getElementById('descripcion').value
+      };
+      await fetch('/api/ordenes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(orden)
+      });
+      e.target.reset();
+      await cargarOrdenes();
+    });
   </script>
 </body>
 </html>
