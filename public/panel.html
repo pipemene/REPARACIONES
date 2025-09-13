@@ -85,83 +85,62 @@
   </div>
 
 <script>
-const params = new URLSearchParams(location.search);
-let rol = params.get('rol'); let id = parseInt(params.get('id')); let usuario = params.get('usuario');
-try{
-  if(!rol || !id || !usuario){
-    const s = JSON.parse(sessionStorage.getItem('session')||'null');
-    if(s){ rol = s.rol; id = s.id; usuario = s.usuario; }
+// --- Robust session retrieval ---
+function getSession(){
+  const params = new URLSearchParams(location.search);
+  let rol = params.get('rol'); 
+  let idStr = params.get('id'); 
+  let usuario = params.get('usuario');
+  let id = idStr ? parseInt(idStr) : NaN;
+  if(!rol || !usuario || Number.isNaN(id)){
+    try{
+      const s = JSON.parse(sessionStorage.getItem('session')||'null');
+      if(s){ rol = s.rol; id = s.id; usuario = s.usuario; }
+    }catch(e){}
   }
-}catch(e){}
+  if(!rol || !usuario || !Number.isFinite(id)){
+    return null;
+  }
+  return {rol, id, usuario};
+}
 
+const sess = getSession();
 const who = document.getElementById('who');
 const tabs = document.getElementById('tabs');
+const errBox = document.getElementById('err');
 
-function logout(){ location.href = '/'; }
-function showEl(idEl, show=true){ document.getElementById(idEl).classList.toggle('hidden', !show); }
-
-function setWho(){
-  who.innerHTML = '<span class="badge">'+usuario+'</span> · <span class="badge">'+rol+'</span>';
-}
+function logout(){ try{ sessionStorage.removeItem('session'); }catch(e){} location.href = '/'; }
+function showEl(idEl, show=true){ const el=document.getElementById(idEl); if(el) el.classList.toggle('hidden', !show); }
+function setWho(s){ if(!s){ who.textContent=''; return; } who.innerHTML = '<span class="badge">'+s.usuario+'</span> · <span class="badge">'+s.rol+'</span>'; }
 
 function navButton(id, label, active=false){
   const b = document.createElement('button');
-  b.textContent = label; b.onclick = ()=>activateTab(id);
-  b.className = active ? 'active' : '';
+  b.textContent = label;
+  b.onclick = ()=>activateTab(id);
+  if(active) b.classList.add('active');
   return b;
 }
 
 function activateTab(id){
-  for(const el of ['tab-usuarios','tab-ordenes']) showEl(el, false);
-  document.getElementById(id).classList.remove('hidden');
-  for(const btn of tabs.querySelectorAll('button')) btn.classList.remove('active');
+  const sections = ['tab-usuarios','tab-ordenes'];
+  sections.forEach(s=>{ const el=document.getElementById(s); if(el) el.classList.add('hidden'); });
+  const target = document.getElementById(id);
+  if(target){ target.classList.remove('hidden'); }
+  // set active class
+  const btns = tabs.querySelectorAll('button');
+  btns.forEach(btn=>btn.classList.remove('active'));
   const idx = id==='tab-usuarios' ? 0 : 1;
-  tabs.querySelectorAll('button')[idx].classList.add('active');
+  if(btns[idx]) btns[idx].classList.add('active');
 }
 
-// Setup UI by role
-async function setup(){
-  try{
-  // Auto-redirect if params missing
-  if(!rol){ location.href = '/'; return; }
-  setWho();
-  tabs.innerHTML = ''; tabs.style.display='flex';
-  // Tabs config
-  if(rol==='superadmin'){
-    tabs.appendChild(navButton('tab-usuarios','Usuarios', true));
-    tabs.appendChild(navButton('tab-ordenes','Órdenes'));
-    // roles dropdowns
-    const rroles = await fetch('/api/usuarios/roles'); const roles = await rroles.json();
-    document.getElementById('uRol').innerHTML = roles.map(r=>`<option>${r}</option>`).join('');
-    document.getElementById('uRolEdit').innerHTML += roles.map(r=>`<option>${r}</option>`).join('');
-    showEl('tab-usuarios', true);
-    await listUsers();
-    showEl('ordenesAdminControls', true);
-    showEl('asignControls', true);
-  } else if(rol==='admin'){
-    tabs.appendChild(navButton('tab-ordenes','Órdenes', true));
-    showEl('tab-ordenes', true);
-    showEl('ordenesAdminControls', true);
-    showEl('asignControls', true);
-  } else if(rol==='tecnico'){
-    tabs.appendChild(navButton('tab-ordenes','Mis Órdenes', true));
-    showEl('tab-ordenes', true);
-    showEl('tecControls', true);
-    showEl('firmaTitulo', true);
-    showEl('sig', true);
-    showEl('firmaControls', true);
-  }
-}
-
-  } catch(err){ const e=document.getElementById('err'); e.style.display='block'; e.textContent='Error inicializando: '+err.message; }
-
-// Usuarios
+// ---- API helpers ----
 async function listUsers(){
   const out = document.getElementById('usersOut');
+  if(!out) return;
   out.innerHTML = '<p class="badge">Cargando usuarios...</p>';
   try{
     const r = await fetch('/api/usuarios', { cache: 'no-store' });
-    if(!r.ok){ throw new Error('HTTP '+r.status); }
+    if(!r.ok) throw new Error('HTTP '+r.status);
     const j = await r.json();
     if(!Array.isArray(j) || j.length===0){
       out.innerHTML = '<div class="notice">⚠️ No hay usuarios registrados.</div>';
@@ -169,35 +148,43 @@ async function listUsers(){
     }
     const rows = j.map(u => `<tr><td>${u.id}</td><td>${u.usuario}</td><td>${u.rol}</td></tr>`).join('');
     out.innerHTML = `<table><thead><tr><th>ID</th><th>Usuario</th><th>Rol</th></tr></thead><tbody>${rows}</tbody></table>`;
-  } catch(err){
+  }catch(err){
     out.innerHTML = `<div class="notice">❌ Error cargando usuarios: ${err.message}</div>`;
   }
 }
-  const rows = j.map(u => `<tr><td>${u.id}</td><td>${u.usuario}</td><td>${u.rol}</td></tr>`).join('');
-  out.innerHTML = `<table><thead><tr><th>ID</th><th>Usuario</th><th>Rol</th></tr></thead><tbody>${rows}</tbody></table>`;
-}
+
+// Usuarios CRUD
 async function createUser(){
   const usuario = document.getElementById('uUsuario').value;
   const password = document.getElementById('uPass').value;
   const rol = document.getElementById('uRol').value;
-  const r = await fetch('/api/usuarios',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({usuario,password,rol})});
-  const j = await r.json(); document.getElementById('usersOut').textContent = JSON.stringify(j,null,2);
+  const out = document.getElementById('usersOut');
+  try{
+    const r = await fetch('/api/usuarios',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({usuario,password,rol})});
+    const j = await r.json(); out.innerHTML = '<pre>'+JSON.stringify(j,null,2)+'</pre>'; await listUsers();
+  }catch(e){ out.innerHTML = `<div class="notice">❌ ${e.message}</div>`; }
 }
 async function editUser(){
   const idEdit = document.getElementById('uIdEdit').value;
   const password = document.getElementById('uPassEdit').value;
   const rol = document.getElementById('uRolEdit').value || undefined;
   const body = {}; if(password) body.password = password; if(rol) body.rol = rol;
-  const r = await fetch('/api/usuarios/'+idEdit,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
-  const j = await r.json(); document.getElementById('usersOut').textContent = JSON.stringify(j,null,2);
+  const out = document.getElementById('usersOut');
+  try{
+    const r = await fetch('/api/usuarios/'+idEdit,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const j = await r.json(); out.innerHTML = '<pre>'+JSON.stringify(j,null,2)+'</pre>'; await listUsers();
+  }catch(e){ out.innerHTML = `<div class="notice">❌ ${e.message}</div>`; }
 }
 async function delUser(){
   const idDel = document.getElementById('uIdDel').value;
-  const r = await fetch('/api/usuarios/'+idDel,{method:'DELETE'});
-  const j = await r.json(); document.getElementById('usersOut').textContent = JSON.stringify(j,null,2);
+  const out = document.getElementById('usersOut');
+  try{
+    const r = await fetch('/api/usuarios/'+idDel,{method:'DELETE'});
+    const j = await r.json(); out.innerHTML = '<pre>'+JSON.stringify(j,null,2)+'</pre>'; await listUsers();
+  }catch(e){ out.innerHTML = `<div class="notice">❌ ${e.message}</div>`; }
 }
 
-// Órdenes
+// Órdenes admin
 async function listOrdenes(){ const r=await fetch('/api/ordenes'); const j=await r.json(); document.getElementById('ordenesOut').textContent = JSON.stringify(j,null,2); }
 async function crearOrden(){
   const codigoInmueble = document.getElementById('oCodigo').value;
@@ -210,33 +197,32 @@ async function crearOrden(){
 async function asignar(){
   const oid = document.getElementById('asigId').value;
   const tecnicoId = parseInt(document.getElementById('asigTec').value);
-  const r = await fetch('/api/ordenes/'+oid+'/asignar',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({tecnicoId,usuario})});
+  const r = await fetch('/api/ordenes/'+oid+'/asignar',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({tecnicoId,usuario:sess.usuario})});
   const j = await r.json(); document.getElementById('ordenesOut').textContent = JSON.stringify(j,null,2);
 }
-function descargarPDF(){ const oid=document.getElementById('pdfId').value; window.open('/api/ordenes/'+oid+'/pdf','_blank'); }
 
 // Técnico
 async function listarMisOrdenes(){
-  const r = await fetch('/api/ordenes?mine=1&tecnicoId='+id);
+  const r = await fetch('/api/ordenes?mine=1&tecnicoId='+sess.id);
   const j = await r.json();
   document.getElementById('ordenesOut').textContent = JSON.stringify(j,null,2);
 }
 async function tomar(){
   const oid = document.getElementById('tomarId').value;
-  const r = await fetch('/api/ordenes/'+oid+'/tomar',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({tecnicoId:id, usuario})});
+  const r = await fetch('/api/ordenes/'+oid+'/tomar',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({tecnicoId:sess.id, usuario:sess.usuario})});
   const j = await r.json(); document.getElementById('ordenesOut').textContent = JSON.stringify(j,null,2);
 }
 async function cambiarEstado(){
   const oid = document.getElementById('estadoId').value;
   const estado = document.getElementById('estadoNew').value;
-  const r = await fetch('/api/ordenes/'+oid,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({estado,usuario})});
+  const r = await fetch('/api/ordenes/'+oid,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({estado,usuario:sess.usuario})});
   const j = await r.json(); document.getElementById('ordenesOut').textContent = JSON.stringify(j,null,2);
 }
 async function subirEvidencia(){
   const oid = document.getElementById('eviId').value;
   const f = document.getElementById('eviFile').files[0];
   if(!f){ alert('Selecciona archivo'); return; }
-  const fd = new FormData(); fd.append('evidencia', f); fd.append('usuario', usuario);
+  const fd = new FormData(); fd.append('evidencia', f); fd.append('usuario', sess.usuario);
   const r = await fetch('/api/ordenes/'+oid+'/evidencia',{ method:'POST', body: fd });
   const j = await r.json(); document.getElementById('ordenesOut').textContent = JSON.stringify(j,null,2);
 }
@@ -258,12 +244,43 @@ window.addEventListener('DOMContentLoaded', ()=>{
   window.enviarFirma = async ()=>{
     const oid = document.getElementById('sigId').value;
     const data = c.toDataURL('image/png');
-    const r = await fetch('/api/ordenes/'+oid,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({firma:data,usuario})});
+    const r = await fetch('/api/ordenes/'+oid,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({firma:data,usuario:sess.usuario})});
     const j = await r.json(); document.getElementById('ordenesOut').textContent = JSON.stringify(j,null,2);
   };
 });
 
-setup().catch(err=>{ const e=document.getElementById('err'); e.style.display='block'; e.textContent='Error en panel: '+err.message; });
+async function setup(){
+  if(!sess){ errBox.style.display='block'; errBox.textContent='Sesión no encontrada. Vuelve a iniciar sesión.'; return; }
+  setWho(sess);
+  tabs.innerHTML=''; tabs.style.display='flex';
+  if(sess.rol==='superadmin'){
+    tabs.appendChild(navButton('tab-usuarios','Usuarios', true));
+    tabs.appendChild(navButton('tab-ordenes','Órdenes'));
+    showEl('tab-usuarios', true);
+    // cargar roles
+    try{
+      const rroles = await fetch('/api/usuarios/roles'); const roles = await rroles.json();
+      document.getElementById('uRol').innerHTML = roles.map(r=>`<option>${r}</option>`).join('');
+      document.getElementById('uRolEdit').innerHTML += roles.map(r=>`<option>${r}</option>`).join('');
+    }catch(e){ /* no crítico */ }
+    await listUsers();
+  } else if(sess.rol==='admin'){
+    tabs.appendChild(navButton('tab-ordenes','Órdenes', true));
+    showEl('tab-ordenes', true);
+    showEl('ordenesAdminControls', true);
+    showEl('asignControls', true);
+  } else {
+    // técnico u otros
+    tabs.appendChild(navButton('tab-ordenes','Mis Órdenes', true));
+    showEl('tab-ordenes', true);
+    showEl('tecControls', true);
+    showEl('firmaTitulo', true);
+    showEl('sig', true);
+    showEl('firmaControls', true);
+  }
+}
+
+setup().catch(err=>{ errBox.style.display='block'; errBox.textContent='Error en panel: '+err.message; });
 </script>
 </body>
 </html>
