@@ -86,7 +86,6 @@ app.get('/api/debug/users', (_req, res) => {
 
 // ========== AUTH ==========
 app.post('/api/login', (req, res) => {
-  // Acepta alias desde el dashboard: usuario|username, password|pass|contrasena
   const usuarioIn = cleanStr(req.body.usuario || req.body.username);
   const passIn = String(req.body.password ?? req.body.pass ?? req.body.contrasena ?? '');
 
@@ -97,10 +96,31 @@ app.post('/api/login', (req, res) => {
   if (!user) return res.status(401).json({ error: 'Usuario o contraseña incorrectos' });
   if (String(user.password) !== passIn) return res.status(401).json({ error: 'Usuario o contraseña incorrectos' });
 
-  // Respuesta limpia (lo que el frontend suele usar)
-  res.json({ id: user.id, usuario: user.usuario, rol: user.rol });
-});
+  const rol = user.rol; // ya normalizado a minúsculas
+  const isSuperAdmin = rol === 'superadmin';
+  const isAdmin = isSuperAdmin || rol === 'admin';
+  const isTecnico = rol === 'tecnico';
+  const isOperador = rol === 'operador';
 
+  const permisos = isSuperAdmin
+    ? ['*']
+    : isAdmin
+      ? ['usuarios:leer', 'usuarios:editar', 'ordenes:*']
+      : isTecnico
+        ? ['ordenes:leer', 'ordenes:actualizar']
+        : ['ordenes:crear', 'ordenes:leer'];
+
+  res.json({
+    id: user.id,
+    usuario: user.usuario,
+    rol,
+    isSuperAdmin,
+    isAdmin,
+    isTecnico,
+    isOperador,
+    permisos
+  });
+});
 // ========== USERS CRUD ==========
 app.get('/api/usuarios', (_req, res) => res.json(usuarios));
 
