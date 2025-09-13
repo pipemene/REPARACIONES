@@ -28,7 +28,7 @@
         </div>
       </div>
       <div class="d-flex justify-content-between mt-2">
-        <button id="btnProbarAPI" type="button" class="btn btn-outline-secondary btn-sm" onclick="(async()=>{ try{ const u=(typeof api===\'function\'? api(\'/api/health\') : \'/api/health\'); alert(\'Probando \'+u); const r=await fetch(u,{cache:\'no-store\'}); const ok=r&&r.ok; const el=document.getElementById(\'apiStatus\')||document.getElementById(\'apiStatusBar\'); if(el){ el.textContent = ok?\'API OK ✅\':(\'API ERROR ❌ \'+(r?r.status:\'sin respuesta\')); el.className = ok?\'text-success\':\'text-danger\'; if(el.id===\'apiStatusBar\'){ el.className = \'alert \'+(ok?\'alert-success\':\'alert-danger\')+\' py-2\'; el.style.display=\'block\'; } } }catch(e){ alert(\'No se pudo contactar la API\'); const el=document.getElementById(\'apiStatus\')||document.getElementById(\'apiStatusBar\'); if(el){ el.textContent=\'API no responde ❌\'; if(el.id===\'apiStatusBar\'){ el.className=\'alert alert-danger py-2\'; el.style.display=\'block\'; } else { el.className=\'text-danger\'; } } } })()">Probar API</button>
+        <button id="btnProbarAPI" type="button" class="btn btn-outline-secondary btn-sm" (async()=>{ try{ const u=(typeof api===\'function\'? api(\'/api/health\') : \'/api/health\'); alert(\'Probando \'+u); const r=await fetch(u,{cache:\'no-store\'}); const ok=r&&r.ok; const el=document.getElementById(\'apiStatus\')||document.getElementById(\'apiStatusBar\'); if(el){ el.textContent = ok?\'API OK ✅\':(\'API ERROR ❌ \'+(r?r.status:\'sin respuesta\')); el.className = ok?\'text-success\':\'text-danger\'; if(el.id===\'apiStatusBar\'){ el.className = \'alert \'+(ok?\'alert-success\':\'alert-danger\')+\' py-2\'; el.style.display=\'block\'; } } }catch(e){ alert(\'No se pudo contactar la API\'); const el=document.getElementById(\'apiStatus\')||document.getElementById(\'apiStatusBar\'); if(el){ el.textContent=\'API no responde ❌\'; if(el.id===\'apiStatusBar\'){ el.className=\'alert alert-danger py-2\'; el.style.display=\'block\'; } else { el.className=\'text-danger\'; } } } })()">Probar API</button>
         <small id="apiStatus" class="text-muted"></small>
 <div class="form-text">URL efectiva de health: <code id="apiEffectiveUrl">/api/health</code></div>
       </div>
@@ -167,8 +167,8 @@
           <td>\${u.usuario}</td>
           <td>\${u.rol}</td>
           <td>
-            <button type="button" class="btn btn-warning btn-sm" onclick="abrirEditar(\${u.id}, '\${u.usuario}', '\${u.rol}')">Editar</button>
-            <button type="button" class="btn btn-danger btn-sm" onclick="eliminarUsuario(\${u.id})">Eliminar</button>
+            <button type="button" class="btn btn-warning btn-sm" abrirEditar(\${u.id}, '\${u.usuario}', '\${u.rol}')">Editar</button>
+            <button type="button" class="btn btn-danger btn-sm" eliminarUsuario(\${u.id})">Eliminar</button>
           </td>\`;
         tbody.appendChild(tr);
       });
@@ -199,8 +199,8 @@
           </td>
           <td class="d-flex gap-1">
             <a class="btn btn-secondary btn-sm" href="/api/ordenes/\${o.id}/pdf" target="_blank">PDF</a>
-            <button type="button" class="btn btn-primary btn-sm" onclick="verDetalle(\${o.id})">Ver</button>
-            <button type="button" class="btn btn-info btn-sm" onclick="verHistorial(\${o.id})">Historial</button>
+            <button type="button" class="btn btn-primary btn-sm" verDetalle(\${o.id})">Ver</button>
+            <button type="button" class="btn btn-info btn-sm" verHistorial(\${o.id})">Historial</button>
           </td>\`;
         tbody.appendChild(tr);
       });
@@ -217,7 +217,7 @@
           <td>\${o.id}</td><td>\${o.nombre}</td><td>\${o.descripcion}</td><td>\${o.estado}</td>
           <td class="d-flex gap-1">
             <a class="btn btn-secondary btn-sm" href="/api/ordenes/\${o.id}/pdf" target="_blank">PDF</a>
-            <button type="button" class="btn btn-primary btn-sm" onclick="verDetalle(\${o.id})">Ver</button>
+            <button type="button" class="btn btn-primary btn-sm" verDetalle(\${o.id})">Ver</button>
           </td>\`;
         tbody.appendChild(tr);
       });
@@ -361,7 +361,32 @@
     document.addEventListener('DOMContentLoaded', probeApi);
 
     (function(){try{const el=document.getElementById('apiEffectiveUrl'); if(!el) return; const base=(typeof getApiBase==='function')?(getApiBase()||''):(window.API_BASE||''); const url=(base?base.replace(/\/$/,''):'')+'/api/health'; el.textContent=url;}catch(e){}})();
-    // Probar API handler
+    // btnProbarAPI safe listener
+document.addEventListener('DOMContentLoaded', ()=>{
+  const btn = document.getElementById('btnProbarAPI');
+  if (!btn) return;
+  btn.addEventListener('click', async ()=>{
+    const u = (typeof api==='function'? api('/api/health') : '/api/health');
+    alert('Probando ' + u);
+    try{
+      const r = await fetch(u,{cache:'no-store'});
+      const ok = r && r.ok;
+      const el = document.getElementById('apiStatus')||document.getElementById('apiStatusBar');
+      if (el){
+        el.textContent = ok ? 'API OK ✅' : ('API ERROR ❌ ' + (r?r.status:'sin respuesta'));
+        if(el.id==='apiStatusBar'){
+          el.className = 'alert ' + (ok?'alert-success':'alert-danger') + ' py-2';
+          el.style.display='block';
+        }else{
+          el.className = ok?'text-success':'text-danger';
+        }
+      }
+    }catch(e){
+      alert('No se pudo contactar la API');
+    }
+  });
+});
+// Probar API handler
     document.getElementById('btnProbarAPI')?.addEventListener('click', async ()=>{ alert('Probando ' + api('/api/health')); await probeApi();
       const statusEl = document.getElementById('apiStatus');
       try{
@@ -381,6 +406,43 @@
       const payload = { usuario:nuevoUsuario, rol:nuevoRol }; if (nuevoPassword) payload.password = nuevoPassword;
       fetchJSON('/api/usuarios/'+id, { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) }).then(()=>{ cargarUsuarios(); cargarOrdenes(); });
     }
+// --- Fix: Probar API handler seguro (sin inline) ---
+document.addEventListener('DOMContentLoaded', ()=>{
+  const btn = document.getElementById('btnProbarAPI');
+  if (!btn) return;
+  btn.addEventListener('click', async ()=>{
+    const u = (typeof api==='function' ? api('/api/health') : '/api/health');
+    alert('Probando ' + u);
+    const statusEl = document.getElementById('apiStatus') || document.getElementById('apiStatusBar');
+    try{
+      const r = await fetch(u, { cache: 'no-store' });
+      const ok = r && r.ok;
+      if (statusEl){
+        if(statusEl.id==='apiStatusBar'){
+          statusEl.className = 'alert ' + (ok? 'alert-success':'alert-danger') + ' py-2';
+          statusEl.style.display = 'block';
+          statusEl.textContent = ok ? ('API conectada: ' + u.replace('/api/health','')) : ('API ERROR ❌ ' + r.status);
+        } else {
+          statusEl.className = ok? 'text-success':'text-danger';
+          statusEl.textContent = ok ? 'API OK ✅' : ('API ERROR ❌ ' + r.status);
+        }
+      }
+    }catch(e){
+      if (statusEl){
+        if(statusEl.id==='apiStatusBar'){
+          statusEl.className = 'alert alert-danger py-2';
+          statusEl.style.display = 'block';
+          statusEl.textContent = 'API no responde ❌';
+        } else {
+          statusEl.className = 'text-danger';
+          statusEl.textContent = 'API no responde ❌';
+        }
+      }
+      alert('No se pudo contactar la API');
+    }
+  }, { once: false });
+});
+
   </script>
 </body>
 </html>
