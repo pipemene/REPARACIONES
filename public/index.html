@@ -100,7 +100,54 @@
   </div>
 </div>
 
+
 <!-- Modales -->
+<div class="modal fade" id="detalleModal" tabindex="-1">
+  <div class="modal-dialog modal-lg"><div class="modal-content">
+    <div class="modal-header"><h5 class="modal-title">Detalle de Orden</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body">
+      <div id="detalleBody">
+        <div class="row g-2">
+          <div class="col-md-4"><strong>ID:</strong> <span id="detId"></span></div>
+          <div class="col-md-4"><strong>Cliente:</strong> <span id="detCliente"></span></div>
+          <div class="col-md-4"><strong>Estado:</strong>
+            <select id="detEstado" class="form-select form-select-sm">
+              <option value="pendiente">pendiente</option>
+              <option value="en proceso">en proceso</option>
+              <option value="finalizada">finalizada</option>
+              <option value="cancelada">cancelada</option>
+              <option value="esperando repuestos">esperando repuestos</option>
+            </select>
+          </div>
+        </div>
+        <div class="mt-2"><strong>Descripción:</strong><div id="detDesc" class="border rounded p-2 bg-light"></div></div>
+        <div class="mt-2 row g-2">
+          <div class="col-md-8">
+            <label class="form-label">Agregar nota</label>
+            <textarea id="detNota" class="form-control" placeholder="Escribe una actualización para esta orden..."></textarea>
+          </div>
+          <div class="col-md-4 d-flex align-items-end">
+            <button id="btnGuardarNota" type="button" class="btn btn-primary w-100">Guardar nota</button>
+          </div>
+        </div>
+        <div class="mt-3 row g-2">
+          <div class="col-md-8">
+            <label class="form-label">Subir evidencia</label>
+            <input type="file" id="detEvidencia" class="form-control" accept="image/*" capture="environment"/>
+          </div>
+          <div class="col-md-4 d-flex align-items-end">
+            <button id="btnSubirEvidencia" type="button" class="btn btn-secondary w-100">Subir evidencia</button>
+          </div>
+        </div>
+        <div class="mt-3">
+          <h6>Historial</h6>
+          <ul id="detHistorial" class="list-group"></ul>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</div>
+
 
   <div class="modal fade" id="editarUsuarioModal" tabindex="-1">
     <div class="modal-dialog"><div class="modal-content">
@@ -498,6 +545,7 @@
       await fetch('/api/ordenes/' + ordenSeleccionada + '/evidencia', { method: 'POST', body: formData });
       bootstrap.Modal.getInstance(document.getElementById('evidenciaModal')).hide();
       await cargarMisOrdenes();
+        wireCrearOrden();
     });
 
     function abrirFirma(id) {
@@ -520,6 +568,7 @@
       });
       bootstrap.Modal.getInstance(document.getElementById('firmaModal')).hide();
       await cargarMisOrdenes();
+        wireCrearOrden();
     });
 
     // Login routing por rol
@@ -537,12 +586,14 @@
         document.getElementById('dashboardTecnico').style.display = 'block';
         document.getElementById('tecnicoNombre').textContent = data.usuario;
         await cargarMisOrdenes();
+        wireCrearOrden();
       } else {
         document.getElementById('dashboardAdmin').style.display = 'block';
         document.getElementById('adminNombre').textContent = data.usuario;
         document.getElementById('rolBadge').textContent = data.rol === 'superadmin' ? '🔑 Superadmin' : '👤 Admin';
         await cargarUsuarios();
         await cargarOrdenes();
+        wireCrearOrden();
       }
     });
 
@@ -563,6 +614,7 @@
       document.getElementById('dashboardTecnico').style.display = 'block';
       document.getElementById('tecnicoNombre').textContent = data.usuario;
       await cargarMisOrdenes();
+        wireCrearOrden();
     } else {
       document.getElementById('dashboardAdmin').style.display = 'block';
       document.getElementById('adminNombre').textContent = data.usuario;

@@ -88,7 +88,7 @@ app.post('/api/ordenes', (req, res) => {
   const nuevaOrden = {
     id: ordenes.length ? Math.max(...ordenes.map(o => o.id)) + 1 : 1,
     codigoInmueble, nombre, telefono, descripcion,
-    estado: 'pendiente', evidencias: [], firma: null, tecnicoId: null, fecha: new Date(), historial: []
+    estado: 'pendiente', evidencias: [], firma: null, tecnicoId: null, fecha: new Date(), historial: [], notas: []
   };
   registrarHistorial(nuevaOrden, 'Sistema', 'Orden creada');
   ordenes.push(nuevaOrden); saveOrdenes(); res.json(nuevaOrden);
@@ -179,3 +179,18 @@ app.get('/api/health', (req, res) => res.json({ ok: true }));
 
 app.listen(PORT, () => console.log(`Servidor corriendo en puerto ${PORT}`));
 
+
+
+// Add note to order
+app.post('/api/ordenes/:id/nota', (req, res) => {
+  const orden = ordenes.find(o => o.id === parseInt(req.params.id));
+  if (!orden) return res.status(404).json({ error: 'Orden no encontrada' });
+  const { texto, usuario } = req.body || {};
+  if (!texto) return res.status(400).json({ error: 'Texto requerido' });
+  if (!orden.notas) orden.notas = [];
+  const nota = { fecha: new Date().toLocaleString(), usuario: usuario || 'Usuario', texto };
+  orden.notas.push(nota);
+  registrarHistorial(orden, usuario || 'Usuario', 'Nota añadida');
+  saveOrdenes();
+  res.json(nota);
+});
