@@ -8,7 +8,9 @@
 </head>
 <body class="bg-light">
   <div class="container mt-5">
-    <h1 class="text-center mb-4">Gestor de Reparaciones</h1>
+    <h1 class="text-center mb-2">Gestor de Reparaciones</h1>
+<div id="apiStatusBar" class="alert alert-warning py-2" role="alert" style="display:none;"></div>
+
 
     <!-- Login -->
     <div id="loginCard" class="card p-4 shadow-sm">
@@ -336,8 +338,29 @@
       if (btn){ btn.addEventListener('click', ()=>{ setApiBase(inp.value.trim()); alert('API guardada'); }); }
     })();
 
+    
+    // ===== Utils de status =====
+    function showStatus(msg, type='warning'){ 
+      const bar = document.getElementById('apiStatusBar'); 
+      if(!bar) return; 
+      bar.className = 'alert alert-' + type + ' py-2'; 
+      bar.style.display='block'; 
+      bar.textContent = msg; 
+    }
+    async function probeApi(){
+      try{
+        const url = api('/api/health');
+        const r = await fetch(url, { cache:'no-store' });
+        if(r.ok){ showStatus('API conectada: ' + url.replace('/api/health',''), 'success'); }
+        else { showStatus('API responde con error ' + r.status + ' en ' + url, 'danger'); }
+      }catch(e){
+        showStatus('No se pudo conectar a la API: ' + (e.message||e), 'danger');
+      }
+    }
+    document.addEventListener('DOMContentLoaded', probeApi);
+
     // Probar API handler
-    document.getElementById('btnProbarAPI')?.addEventListener('click', async ()=>{ alert('Probando ' + api('/api/health'));
+    document.getElementById('btnProbarAPI')?.addEventListener('click', async ()=>{ alert('Probando ' + api('/api/health')); await probeApi();
       const statusEl = document.getElementById('apiStatus');
       try{
         const r = await fetch(api('/api/health');

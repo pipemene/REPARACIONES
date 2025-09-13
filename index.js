@@ -11,7 +11,8 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(cors());
+app.use(cors({ origin: true }));
+app.options('*', cors({ origin: true }));
 app.use(bodyParser.json({ limit: '20mb' }));
 app.use(express.static('public'));
 app.use('/uploads', express.static('uploads'));
