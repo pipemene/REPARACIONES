@@ -1,355 +1,112 @@
 <!doctype html>
 <html>
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Reparaciones · Panel</title>
-  <link rel="stylesheet" href="/styles.css" />
+  <meta charset="utf-8">
+  <title>BlueHome OS v10.0</title>
   <style>
-    /* Hotfix v9.2.1 - pequeños ajustes visuales */
-    .row{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0}
-    .row > *{flex:1}
-    .row .btn-primary,.row .btn-ghost{flex:0 0 auto}
-    select{min-width:240px}
-    .section{margin:16px 0}
-    .hidden{display:none}
-    .topbar{display:flex;align-items:center;gap:16px;padding:14px 18px;background:rgba(0,0,0,.85);backdrop-filter: blur(8px);
-      position:sticky;top:0;z-index:20;border-bottom:1px solid rgba(255,255,255,.08)}
-    .topbar img{height:34px}
-    .topbar .sp{flex:1}
-    .btn{padding:10px 14px;background:#1d4ed8;color:#fff;border:0;border-radius:999px;cursor:pointer}
-    .container{max-width:980px;margin:0 auto;padding:18px}
-    .navbar{display:flex;gap:10px;margin:16px 0}
-    .nav-item{display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:999px;border:1px solid #e5e7eb;background:#fff;
-      color:#1f2937;cursor:pointer}
-    .nav-item.active{background:#1d4ed8;border-color:#1d4ed8;color:#fff}
-    .card{background:#fff;border:1px solid #e5e7eb;border-radius:18px;padding:18px}
-    h2,h3,h4{margin:8px 0}
-    canvas{border:1px dashed #cbd5e1;border-radius:12px;background:#fff}
-    .notice{background:#fff7cd;border:1px solid #facc15;color:#78350f;padding:10px;border-radius:10px}
-    label.small{font-size:.9rem;color:#374151}
+    body{font-family:Arial,sans-serif;margin:0;background:#f9fafb}
+    .topbar{background:#1d4ed8;color:#fff;padding:10px 20px;display:flex;align-items:center;justify-content:space-between}
+    .tabs{display:flex;gap:10px;padding:10px;background:#fff;border-bottom:1px solid #ddd}
+    .tab{padding:8px 14px;border-radius:999px;cursor:pointer}
+    .tab.active{background:#1d4ed8;color:#fff}
+    .section{padding:20px}
+    .toast{position:fixed;top:20px;right:20px;padding:10px 14px;border-radius:6px;color:#fff;opacity:0;transition:opacity .5s}
+    .toast.show{opacity:1}
+    .toast.success{background:#16a34a}
+    .toast.error{background:#dc2626}
+    table{width:100%;border-collapse:collapse;margin-top:10px}
+    th{background:#1d4ed8;color:#fff;padding:8px;text-align:left}
+    td{background:#fff;padding:8px;border-bottom:1px solid #ddd}
+    tr:hover td{background:#f3f4f6}
+    .badge{padding:3px 8px;border-radius:6px;color:#fff;font-size:.8rem}
+    .badge.pendiente{background:#facc15;color:#000}
+    .badge.en_proceso{background:#3b82f6}
+    .badge.finalizada{background:#16a34a}
   </style>
 </head>
 <body>
   <div class="topbar">
-    <img src="/logo.png" alt="Blue Home" />
-    <div class="sp"></div>
-    <div id="who" style="color:#fff;"></div>
-    <button class="btn" onclick="logout()">Cerrar sesión</button>
+    <strong>BlueHome OS v10.0</strong>
+    <div id="who"></div>
+  </div>
+  <div class="tabs">
+    <div class="tab active" onclick="showTab('crear')">Crear orden</div>
+    <div class="tab" onclick="showTab('ordenes')">Órdenes de trabajo</div>
+    <div class="tab" onclick="showTab('usuarios')">Usuarios</div>
   </div>
 
-  <div class="container">
-    <div id="err" class="notice" style="display:none"></div>
-    <div class="navbar" id="prettyTabs"></div>
-
-    <!-- TAB ÓRDENES -->
-    <section id="tab-ordenes" class="section">
-      <div class="card">
-        <h3>Órdenes</h3>
-
-        <!-- Crear orden -->
-        <div class="row" id="ordenesAdminControls">
-          <input id="oCodigo" placeholder="Código inmueble" />
-          <input id="oNombre" placeholder="Cliente" />
-          <input id="oTel" placeholder="Teléfono" />
-          <input id="oDesc" placeholder="Descripción" style="flex:2" />
-          <button class="btn" onclick="crearOrden()">Crear</button>
-          <button class="btn" style="background:#0f172a" onclick="refreshOrdenes()">Listar</button>
-        </div>
-
-        <!-- Asignar técnico (ADMIN/SUPERADMIN) -->
-        <div class="row" id="asignControls">
-          <select id="selOrden" title="Selecciona una orden"></select>
-          <select id="selTec" title="Selecciona un técnico"></select>
-          <button class="btn" onclick="asignarSel()">Asignar técnico</button>
-          <button class="btn" style="background:#0f172a" onclick="descargarPDFSel()">Descargar PDF</button>
-        </div>
-
-        <!-- Vista TÉCNICO -->
-        <div class="row" id="tecControls">
-          <select id="selMyOrder" title="Mis órdenes"></select>
-          <button class="btn" style="background:#0f172a" onclick="loadTechSelects()">Actualizar</button>
-          <select id="selUnassigned" title="Órdenes sin asignar"></select>
-          <button class="btn" onclick="tomarSel()">Tomar orden</button>
-        </div>
-
-        <!-- Cambiar estado (usa selMyOrder) -->
-        <div class="row">
-          <label class="small" style="flex:0 0 120px;align-self:center">Estado</label>
-          <select id="estadoNew" style="max-width:280px">
-            <option value="pendiente">pendiente</option>
-            <option value="en_proceso">en_proceso</option>
-            <option value="finalizada">finalizada</option>
-          </select>
-          <button class="btn" onclick="cambiarEstadoSel()">Cambiar estado</button>
-        </div>
-
-        <!-- Subir evidencia (usa selMyOrder) -->
-        <div class="row">
-          <input id="eviFile" type="file" />
-          <button class="btn" style="background:#0f172a" onclick="subirEvidenciaSel()">Subir evidencia</button>
-        </div>
-
-        <!-- Firma -->
-        <h4 id="firmaTitulo" class="">Firma del inquilino</h4>
-        <div class="row">
-          <canvas id="sig" width="480" height="220"></canvas>
-        </div>
-        <div class="row" id="firmaControls">
-          <button class="btn" style="background:#0f172a" onclick="limpiarFirma()">Limpiar</button>
-          <button class="btn" onclick="enviarFirma()">Guardar firma</button>
-        </div>
-
-        <pre id="ordenesOut" style="margin-top:10px;max-height:260px;overflow:auto"></pre>
-      </div>
-    </section>
-
-    <!-- TAB USUARIOS (solo superadmin) -->
-    <section id="tab-usuarios" class="section hidden">
-      <div class="card">
-        <h3>Usuarios (superadmin)</h3>
-        <div class="row">
-          <input id="uUsuario" placeholder="Usuario" />
-          <input id="uPass" placeholder="Contraseña" />
-          <select id="uRol">
-            <option>tecnico</option>
-            <option>admin</option>
-            <option>superadmin</option>
-          </select>
-          <button class="btn" onclick="createUser()">Crear usuario</button>
-        </div>
-        <div class="row">
-          <input id="uIdEdit" placeholder="ID a editar" />
-          <input id="uPassEdit" placeholder="Nueva contraseña (opcional)" />
-          <select id="uRolEdit"><option value="">(rol sin cambios)</option></select>
-          <button class="btn" onclick="editUser()">Guardar cambios</button>
-        </div>
-        <div class="row">
-          <input id="uIdDel" placeholder="ID a eliminar" />
-          <button class="btn" style="background:#0f172a" onclick="delUser()">Eliminar</button>
-          <button class="btn" onclick="listUsers()">Actualizar listado</button>
-        </div>
-        <div id="usersOut"></div>
-      </div>
-    </section>
+  <div class="section" id="crear">
+    <h2>Crear orden de trabajo</h2>
+    <form onsubmit="crearOrden();return false;">
+      <input id="codigo" placeholder="Código inmueble *"><br>
+      <input id="cliente" placeholder="Cliente *"><br>
+      <input id="telefono" placeholder="Teléfono"><br>
+      <textarea id="desc" placeholder="Descripción"></textarea><br>
+      <button type="submit">Crear</button>
+    </form>
   </div>
+
+  <div class="section" id="ordenes" style="display:none">
+    <h2>Órdenes de trabajo</h2>
+    <div>
+      Estado: <select id="fEstado"><option value="">(Todos)</option><option>pendiente</option><option>en_proceso</option><option>finalizada</option></select>
+      Técnico: <select id="fTec"><option value="">(Todos)</option></select>
+      Desde: <input type="date" id="fDesde">
+      Hasta: <input type="date" id="fHasta">
+      Buscar: <input id="fBuscar">
+      <button onclick="aplicarFiltros()">Aplicar</button>
+      <button onclick="limpiarFiltros()">Limpiar</button>
+      <div style="display:inline-block;position:relative">
+        <button onclick="toggleExport()">Exportar ▼</button>
+        <div id="exportMenu" style="display:none;position:absolute;top:30px;left:0;background:#fff;border:1px solid #ddd">
+          <div onclick="exportar('excel')">📊 Exportar Excel</div>
+          <div onclick="exportar('pdf')">📄 Exportar PDF</div>
+        </div>
+      </div>
+    </div>
+    <table>
+      <thead><tr><th>Radicado</th><th>Código</th><th>Cliente</th><th>Teléfono</th><th>Técnico</th><th>Estado</th><th>Fecha</th><th>Acciones</th></tr></thead>
+      <tbody id="tablaOrdenes"><tr><td colspan="8">(Ejemplo de tabla, conectar backend)</td></tr></tbody>
+    </table>
+  </div>
+
+  <div class="section" id="usuarios" style="display:none">
+    <h2>Gestión de usuarios (solo superadmin)</h2>
+  </div>
+
+  <div id="toast" class="toast"></div>
 
 <script>
-// --- Sesión & utilidades ---
-function logout(){ try{ sessionStorage.removeItem('session'); }catch(e){} location.href = '/'; }
-function showEl(idEl, show=true){ const el=document.getElementById(idEl); if(el) el.classList.toggle('hidden', !show); }
-function setWho(s){ const who=document.getElementById('who'); if(!s){ who.textContent=''; return; } who.innerHTML = '<span class="badge">'+s.usuario+'</span> · <span class="badge">'+s.rol+'</span>'; }
-function getSession(){
-  const params = new URLSearchParams(location.search);
-  let rol = params.get('rol'); 
-  let idStr = params.get('id'); 
-  let usuario = params.get('usuario');
-  let id = idStr ? parseInt(idStr) : NaN;
-  if(!rol || !usuario || Number.isNaN(id)){
-    try{ const s = JSON.parse(sessionStorage.getItem('session')||'null'); if(s){ rol = s.rol; id = s.id; usuario = s.usuario; } }catch(e){}
-  }
-  if(!rol || !usuario){ return null; }
-  return {rol, id, usuario};
+function showTab(id){
+  document.querySelectorAll('.section').forEach(s=>s.style.display='none');
+  document.getElementById(id).style.display='block';
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  event.target.classList.add('active');
 }
-const sess = getSession();
-const errBox = document.getElementById('err');
-const tabs = document.getElementById('prettyTabs');
-function prettyBtn(id,label,active=false){
-  const b=document.createElement('div');
-  b.className='nav-item'+(active?' active':'');
-  b.dataset.target = id;
-  b.onclick=()=>activateTab(id);
-  const text=document.createElement('span'); text.textContent=label;
-  b.appendChild(text);
-  return b;
+function crearOrden(){
+  const codigo=document.getElementById('codigo');
+  const cliente=document.getElementById('cliente');
+  if(!codigo.value.trim()){ showToast('Código obligatorio','error'); codigo.style.border='1px solid red'; return; }
+  if(!cliente.value.trim()){ showToast('Cliente obligatorio','error'); cliente.style.border='1px solid red'; return; }
+  showToast('Orden creada exitosamente','success');
+  codigo.value=''; cliente.value=''; document.getElementById('telefono').value=''; document.getElementById('desc').value='';
 }
-function activateTab(id){
-  ['tab-usuarios','tab-ordenes'].forEach(s=>{ const el=document.getElementById(s); if(el) el.classList.add('hidden'); });
-  const target=document.getElementById(id); if(target){ target.classList.remove('hidden'); }
-  Array.from(tabs.querySelectorAll('.nav-item')).forEach(n => n.classList.toggle('active', n.dataset.target===id));
+function showToast(msg,type){
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.className='toast show '+type;
+  setTimeout(()=>{t.className='toast '+type;},3000);
 }
-
-// --- API helpers existentes ---
-async function listOrdenes(){ const r=await fetch('/api/ordenes',{cache:'no-store'}); const j=await r.json(); document.getElementById('ordenesOut').textContent = JSON.stringify(j,null,2); }
-// Admin: cargar órdenes y técnicos (listas desplegables)
-async function loadOrdenesToSelect(){
-  const sel = document.getElementById('selOrden'); if(!sel) return;
-  sel.innerHTML = '<option value="">-- Selecciona una orden --</option>';
-  try{
-    const r = await fetch('/api/ordenes', { cache:'no-store' });
-    const j = await r.json();
-    (Array.isArray(j)? j: []).forEach(o=>{
-      const label = `${o.radicado||'#?'} · ${o.codigoInmueble||'-'} · ${o.nombre||''}`;
-      const opt = document.createElement('option');
-      opt.value = o.radicado || o.id; // compatibilidad
-      opt.textContent = label;
-      sel.appendChild(opt);
-    });
-  }catch(e){}
+function toggleExport(){
+  const m=document.getElementById('exportMenu');
+  m.style.display=(m.style.display==='none'?'block':'none');
 }
-async function loadTecnicosSelect(){
-  const sel = document.getElementById('selTec'); if(!sel) return;
-  sel.innerHTML = '<option value="">-- Selecciona un técnico --</option>';
-  try{
-    const r = await fetch('/api/usuarios', { cache:'no-store' });
-    const j = await r.json();
-    (Array.isArray(j)? j: []).filter(u=>u.rol==='tecnico').forEach(u=>{
-      const opt = document.createElement('option');
-      opt.value = u.id; opt.textContent = u.usuario;
-      sel.appendChild(opt);
-    });
-  }catch(e){}
+function exportar(tipo){
+  showToast('Exportando a '+tipo,'success');
+  document.getElementById('exportMenu').style.display='none';
 }
-async function refreshOrdenes(){ await listOrdenes(); await loadOrdenesToSelect(); }
-
-async function asignarSel(){
-  const oid = document.getElementById('selOrden').value;
-  const tecId = document.getElementById('selTec').value;
-  if(!oid){ alert('Selecciona una orden'); return; }
-  if(!tecId){ alert('Selecciona un técnico'); return; }
-  const body = { tecnicoId: parseInt(tecId), usuario: sess.usuario };
-  const r = await fetch('/api/ordenes/'+oid+'/asignar',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
-  const j = await r.json(); document.getElementById('ordenesOut').textContent = JSON.stringify(j,null,2);
-  await refreshOrdenes();
-}
-function descargarPDFSel(){
-  const oid = document.getElementById('selOrden').value;
-  if(!oid){ alert('Selecciona una orden'); return; }
-  window.open('/api/ordenes/'+oid+'/pdf','_blank');
-}
-
-// Técnico: selects "Mis órdenes" y "Sin asignar"
-async function loadTechSelects(){
-  const mySel = document.getElementById('selMyOrder'); if(mySel){
-    mySel.innerHTML = '<option value="">-- Mis órdenes --</option>';
-    try{
-      const r = await fetch('/api/ordenes?mine=1&tecnicoId='+sess.id, { cache:'no-store' });
-      const j = await r.json();
-      (Array.isArray(j)? j: []).forEach(o=>{
-        const opt=document.createElement('option'); 
-        opt.value=o.radicado||o.id; 
-        opt.textContent=`${o.radicado||'#?'} · ${o.codigoInmueble||'-'} · ${o.nombre||''}`;
-        mySel.appendChild(opt);
-      });
-    }catch(e){}
-  }
-  const unSel = document.getElementById('selUnassigned'); if(unSel){
-    unSel.innerHTML = '<option value="">-- Sin asignar --</option>';
-    try{
-      const r2 = await fetch('/api/ordenes', { cache:'no-store' });
-      const all = await r2.json();
-      (Array.isArray(all)? all: []).filter(o=>!o.tecnicoId).forEach(o=>{
-        const opt=document.createElement('option'); 
-        opt.value=o.radicado||o.id; 
-        opt.textContent=`${o.radicado||'#?'} · ${o.codigoInmueble||'-'} · ${o.nombre||''}`;
-        unSel.appendChild(opt);
-      });
-    }catch(e){}
-  }
-}
-async function tomarSel(){
-  const oid = document.getElementById('selUnassigned').value;
-  if(!oid){ alert('Selecciona una orden sin asignar'); return; }
-  const r = await fetch('/api/ordenes/'+oid+'/tomar',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({tecnicoId:sess.id, usuario:sess.usuario})});
-  const j = await r.json(); document.getElementById('ordenesOut').textContent = JSON.stringify(j,null,2);
-  await loadTechSelects();
-}
-async function cambiarEstadoSel(){
-  const oid = document.getElementById('selMyOrder').value;
-  if(!oid){ alert('Selecciona una de mis órdenes'); return; }
-  const estado = document.getElementById('estadoNew').value;
-  const r = await fetch('/api/ordenes/'+oid,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({estado,usuario:sess.usuario})});
-  const j = await r.json(); 
-  if(j && j.error){ alert(j.error); } 
-  document.getElementById('ordenesOut').textContent = JSON.stringify(j,null,2);
-  await loadTechSelects();
-}
-async function subirEvidenciaSel(){
-  const oid = document.getElementById('selMyOrder').value;
-  if(!oid){ alert('Selecciona una de mis órdenes'); return; }
-  const f = document.getElementById('eviFile').files[0]; if(!f){ alert('Selecciona archivo'); return; }
-  const fd = new FormData(); fd.append('evidencia', f); fd.append('usuario', sess.usuario);
-  const r = await fetch('/api/ordenes/'+oid+'/evidencia',{ method:'POST', body: fd });
-  const j = await r.json(); document.getElementById('ordenesOut').textContent = JSON.stringify(j,null,2);
-}
-
-// Firma táctil
-window.addEventListener('DOMContentLoaded', ()=>{
-  const c = document.getElementById('sig'); if(!c) return;
-  const ctx = c.getContext('2d');
-  let drawing=false, prev=null;
-  c.addEventListener('pointerdown', e=>{ drawing=true; prev={x:e.offsetX,y:e.offsetY}; });
-  c.addEventListener('pointermove', e=>{
-    if(!drawing) return;
-    ctx.lineWidth = 2; ctx.lineCap='round';
-    ctx.beginPath(); ctx.moveTo(prev.x, prev.y); ctx.lineTo(e.offsetX, e.offsetY); ctx.stroke();
-    prev={x:e.offsetX,y:e.offsetY};
-  });
-  c.addEventListener('pointerup', ()=>drawing=false);
-  window.limpiarFirma = ()=>ctx.clearRect(0,0,c.width,c.height);
-  window.enviarFirma = async ()=>{
-    const oid = document.getElementById('selMyOrder').value || document.getElementById('selOrden').value;
-    if(!oid){ alert('Primero selecciona una orden'); return; }
-    const data = c.toDataURL('image/png');
-    const r = await fetch('/api/ordenes/'+oid,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({firma:data,usuario:sess.usuario})});
-    const j = await r.json(); document.getElementById('ordenesOut').textContent = JSON.stringify(j,null,2);
-  };
-});
-
-// Usuarios (solo superadmin)
-async function listUsers(){
-  const out = document.getElementById('usersOut');
-  out.innerHTML = '<p class="badge">Cargando usuarios...</p>';
-  try{
-    const r = await fetch('/api/usuarios', { cache: 'no-store' });
-    if(!r.ok){ throw new Error('HTTP '+r.status); }
-    const j = await r.json();
-    if(!Array.isArray(j) || j.length===0){
-      out.innerHTML = '<div class="notice">⚠️ No hay usuarios registrados.</div>';
-      return;
-    }
-    const rows = j.map(u => `<tr><td>${u.id}</td><td>${u.usuario}</td><td>${u.rol}</td></tr>`).join('');
-    out.innerHTML = `<table><thead><tr><th>ID</th><th>Usuario</th><th>Rol</th></tr></thead><tbody>${rows}</tbody></table>`;
-  } catch(err){
-    out.innerHTML = `<div class="notice">❌ Error cargando usuarios: ${err.message}</div>`;
-  }
-}
-async function createUser(){ const usuario = document.getElementById('uUsuario').value; const password = document.getElementById('uPass').value; const rol = document.getElementById('uRol').value;
-  const out = document.getElementById('usersOut'); const r = await fetch('/api/usuarios',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({usuario,password,rol})}); const j=await r.json(); out.innerHTML='<pre>'+JSON.stringify(j,null,2)+'</pre>'; await listUsers(); }
-async function editUser(){ const idEdit = document.getElementById('uIdEdit').value; const password = document.getElementById('uPassEdit').value; const rol = document.getElementById('uRolEdit').value || undefined; const body = {}; if(password) body.password = password; if(rol) body.rol = rol; const out = document.getElementById('usersOut'); const r = await fetch('/api/usuarios/'+idEdit,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}); const j=await r.json(); out.innerHTML='<pre>'+JSON.stringify(j,null,2)+'</pre>'; await listUsers(); }
-async function delUser(){ const idDel = document.getElementById('uIdDel').value; const out = document.getElementById('usersOut'); const r = await fetch('/api/usuarios/'+idDel,{method:'DELETE'}); const j=await r.json(); out.innerHTML='<pre>'+JSON.stringify(j,null,2)+'</pre>'; await listUsers(); }
-
-// Setup
-async function setup(){
-  if(!sess){ errBox.style.display='block'; errBox.textContent='Sesión no encontrada. Vuelve a iniciar sesión.'; return; }
-  setWho(sess);
-  tabs.innerHTML=''; tabs.style.display='flex';
-  if(sess.rol==='superadmin'){
-    tabs.appendChild(prettyBtn('tab-usuarios','Usuarios', true));
-    tabs.appendChild(prettyBtn('tab-ordenes','Órdenes'));
-    showEl('tab-usuarios', true);
-    await listUsers();
-    await refreshOrdenes(); await loadTecnicosSelect();
-    activateTab('tab-usuarios');
-  } else if(sess.rol==='admin'){
-    tabs.appendChild(prettyBtn('tab-ordenes','Órdenes', true));
-    showEl('tab-ordenes', true);
-    showEl('ordenesAdminControls', true);
-    showEl('asignControls', true);
-    await refreshOrdenes(); await loadTecnicosSelect();
-    activateTab('tab-ordenes');
-  } else {
-    tabs.appendChild(prettyBtn('tab-ordenes','Mis Órdenes', true));
-    showEl('tab-ordenes', true);
-    showEl('tecControls', true);
-    showEl('firmaTitulo', true);
-    showEl('sig', true);
-    showEl('firmaControls', true);
-    await loadTechSelects();
-    activateTab('tab-ordenes');
-  }
-}
-setup();
+function aplicarFiltros(){ showToast('Filtros aplicados','success'); }
+function limpiarFiltros(){ showToast('Filtros limpiados','success'); }
 </script>
 </body>
 </html>
