@@ -1,21 +1,10 @@
 {
-  "name": "reparaciones",
-  "version": "1.5.0",
-  "description": "Login minimal y dashboard con men\u00fa por rol (superadmin: Usuarios/\u00d3rdenes; admin: \u00d3rdenes; t\u00e9cnico: Mis \u00d3rdenes)",
+  "name": "bluehome-os",
+  "version": "10.1.0",
   "main": "index.js",
-  "type": "module",
-  "scripts": {
-    "start": "node index.js"
-  },
   "dependencies": {
-    "body-parser": "^1.20.2",
-    "cors": "^2.8.5",
-    "dotenv": "^16.3.1",
     "express": "^4.18.2",
-    "multer": "^1.4.5-lts.1",
-    "pdfkit": "^0.15.0"
-  },
-  "engines": {
-    "node": ">=18.17"
+    "pdfkit": "^0.15.0",
+    "googleapis": "^131.0.0"
   }
 }

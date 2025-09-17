@@ -2,111 +2,27 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>BlueHome OS v10.0</title>
+  <title>BlueHome OS v10.1</title>
   <style>
-    body{font-family:Arial,sans-serif;margin:0;background:#f9fafb}
-    .topbar{background:#1d4ed8;color:#fff;padding:10px 20px;display:flex;align-items:center;justify-content:space-between}
-    .tabs{display:flex;gap:10px;padding:10px;background:#fff;border-bottom:1px solid #ddd}
-    .tab{padding:8px 14px;border-radius:999px;cursor:pointer}
-    .tab.active{background:#1d4ed8;color:#fff}
-    .section{padding:20px}
-    .toast{position:fixed;top:20px;right:20px;padding:10px 14px;border-radius:6px;color:#fff;opacity:0;transition:opacity .5s}
-    .toast.show{opacity:1}
-    .toast.success{background:#16a34a}
-    .toast.error{background:#dc2626}
-    table{width:100%;border-collapse:collapse;margin-top:10px}
-    th{background:#1d4ed8;color:#fff;padding:8px;text-align:left}
-    td{background:#fff;padding:8px;border-bottom:1px solid #ddd}
-    tr:hover td{background:#f3f4f6}
-    .badge{padding:3px 8px;border-radius:6px;color:#fff;font-size:.8rem}
-    .badge.pendiente{background:#facc15;color:#000}
-    .badge.en_proceso{background:#3b82f6}
-    .badge.finalizada{background:#16a34a}
+    body{margin:0;font-family:Arial;background:#f9fafb}
+    .topbar{background:#0f172a;color:#fff;padding:10px;display:flex;align-items:center;justify-content:space-between}
+    .logo{flex:1;text-align:center;font-weight:bold;font-size:20px}
+    .logout{cursor:pointer;color:#fff;background:#dc2626;border:none;padding:6px 12px;border-radius:6px}
   </style>
 </head>
 <body>
   <div class="topbar">
-    <strong>BlueHome OS v10.0</strong>
-    <div id="who"></div>
+    <div></div>
+    <div class="logo">BlueHome Inmobiliaria</div>
+    <button class="logout" onclick="cerrarSesion()">Cerrar sesión</button>
   </div>
-  <div class="tabs">
-    <div class="tab active" onclick="showTab('crear')">Crear orden</div>
-    <div class="tab" onclick="showTab('ordenes')">Órdenes de trabajo</div>
-    <div class="tab" onclick="showTab('usuarios')">Usuarios</div>
+  <div style="padding:20px">
+    <p>Panel principal v10.1 (frontend simplificado con logo y logout, conectar con backend)</p>
   </div>
-
-  <div class="section" id="crear">
-    <h2>Crear orden de trabajo</h2>
-    <form onsubmit="crearOrden();return false;">
-      <input id="codigo" placeholder="Código inmueble *"><br>
-      <input id="cliente" placeholder="Cliente *"><br>
-      <input id="telefono" placeholder="Teléfono"><br>
-      <textarea id="desc" placeholder="Descripción"></textarea><br>
-      <button type="submit">Crear</button>
-    </form>
-  </div>
-
-  <div class="section" id="ordenes" style="display:none">
-    <h2>Órdenes de trabajo</h2>
-    <div>
-      Estado: <select id="fEstado"><option value="">(Todos)</option><option>pendiente</option><option>en_proceso</option><option>finalizada</option></select>
-      Técnico: <select id="fTec"><option value="">(Todos)</option></select>
-      Desde: <input type="date" id="fDesde">
-      Hasta: <input type="date" id="fHasta">
-      Buscar: <input id="fBuscar">
-      <button onclick="aplicarFiltros()">Aplicar</button>
-      <button onclick="limpiarFiltros()">Limpiar</button>
-      <div style="display:inline-block;position:relative">
-        <button onclick="toggleExport()">Exportar ▼</button>
-        <div id="exportMenu" style="display:none;position:absolute;top:30px;left:0;background:#fff;border:1px solid #ddd">
-          <div onclick="exportar('excel')">📊 Exportar Excel</div>
-          <div onclick="exportar('pdf')">📄 Exportar PDF</div>
-        </div>
-      </div>
-    </div>
-    <table>
-      <thead><tr><th>Radicado</th><th>Código</th><th>Cliente</th><th>Teléfono</th><th>Técnico</th><th>Estado</th><th>Fecha</th><th>Acciones</th></tr></thead>
-      <tbody id="tablaOrdenes"><tr><td colspan="8">(Ejemplo de tabla, conectar backend)</td></tr></tbody>
-    </table>
-  </div>
-
-  <div class="section" id="usuarios" style="display:none">
-    <h2>Gestión de usuarios (solo superadmin)</h2>
-  </div>
-
-  <div id="toast" class="toast"></div>
-
 <script>
-function showTab(id){
-  document.querySelectorAll('.section').forEach(s=>s.style.display='none');
-  document.getElementById(id).style.display='block';
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-  event.target.classList.add('active');
+function cerrarSesion(){
+  alert("Sesión cerrada");
 }
-function crearOrden(){
-  const codigo=document.getElementById('codigo');
-  const cliente=document.getElementById('cliente');
-  if(!codigo.value.trim()){ showToast('Código obligatorio','error'); codigo.style.border='1px solid red'; return; }
-  if(!cliente.value.trim()){ showToast('Cliente obligatorio','error'); cliente.style.border='1px solid red'; return; }
-  showToast('Orden creada exitosamente','success');
-  codigo.value=''; cliente.value=''; document.getElementById('telefono').value=''; document.getElementById('desc').value='';
-}
-function showToast(msg,type){
-  const t=document.getElementById('toast');
-  t.textContent=msg;
-  t.className='toast show '+type;
-  setTimeout(()=>{t.className='toast '+type;},3000);
-}
-function toggleExport(){
-  const m=document.getElementById('exportMenu');
-  m.style.display=(m.style.display==='none'?'block':'none');
-}
-function exportar(tipo){
-  showToast('Exportando a '+tipo,'success');
-  document.getElementById('exportMenu').style.display='none';
-}
-function aplicarFiltros(){ showToast('Filtros aplicados','success'); }
-function limpiarFiltros(){ showToast('Filtros limpiados','success'); }
 </script>
 </body>
 </html>
