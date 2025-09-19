@@ -1,9 +1,16 @@
 {
-  "name": "bluehome-os",
-  "version": "10.2.3",
-  "type": "module",
+  "name": "bluehome-os-v10.4",
+  "version": "1.0.0",
   "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js"
+  },
   "dependencies": {
-    "express": "^4.18.2"
+    "express": "^4.18.2",
+    "jsonwebtoken": "^9.0.2",
+    "googleapis": "^131.0.0",
+    "node-fetch": "^3.3.2",
+    "pdfkit": "^0.15.0"
   }
 }

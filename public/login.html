@@ -1,16 +1,38 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="utf-8">
-  <title>Login - BlueHome OS</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - BlueHome</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-[#0f172a] flex items-center justify-center min-h-screen">
-  <div class="bg-white p-8 rounded-xl shadow-lg w-96">
-    <h2 class="text-2xl font-bold text-center mb-6">Iniciar Sesión</h2>
-    <input id="username" placeholder="Usuario" class="w-full p-2 mb-3 border rounded-lg focus:ring"><br>
-    <input id="password" type="password" placeholder="Contraseña" class="w-full p-2 mb-3 border rounded-lg focus:ring"><br>
-    <button onclick="alert('Login de prueba')" class="w-full bg-[#0f172a] text-white p-2 rounded-lg hover:bg-blue-900 transition">Ingresar</button>
+<body class="bg-gray-900 flex items-center justify-center h-screen">
+  <div class="bg-gray-800 p-8 rounded-lg shadow-lg w-96 text-center">
+    <img src="logo-white.png" alt="Logo" class="mx-auto mb-6 w-24">
+    <h1 class="text-white text-2xl mb-4">Iniciar Sesión</h1>
+    <input id="username" type="text" placeholder="Usuario" class="w-full p-2 mb-3 rounded">
+    <input id="password" type="password" placeholder="Contraseña" class="w-full p-2 mb-3 rounded">
+    <button onclick="login()" class="w-full bg-blue-600 text-white p-2 rounded">Entrar</button>
+    <p id="error" class="text-red-500 mt-3 hidden">Credenciales inválidas</p>
   </div>
+  <script>
+    async function login() {
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+      const resp = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+      if (resp.ok) {
+        const data = await resp.json();
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('role', data.role);
+        window.location.href = '/panel.html';
+      } else {
+        document.getElementById('error').classList.remove('hidden');
+      }
+    }
+  </script>
 </body>
 </html>
