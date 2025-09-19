@@ -1,5 +1,5 @@
 {
-  "name": "bluehome-os-v10.4.2",
+  "name": "bluehome-os-v10.6",
   "version": "1.0.0",
   "main": "index.js",
   "type": "module",
@@ -10,6 +10,7 @@
     "express": "^4.18.2",
     "jsonwebtoken": "^9.0.2",
     "googleapis": "^131.0.0",
-    "node-fetch": "^3.3.2"
+    "node-fetch": "^3.3.2",
+    "pdfkit": "^0.15.0"
   }
 }

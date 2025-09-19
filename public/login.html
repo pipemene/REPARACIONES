@@ -3,35 +3,46 @@
 <head>
   <meta charset="UTF-8">
   <title>Login - Bluehome</title>
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-  <h2>Login</h2>
-  <form id="loginForm">
-    <input type="text" id="username" placeholder="Usuario" required><br>
-    <input type="password" id="password" placeholder="Contraseña" required><br>
-    <button type="submit">Ingresar</button>
-  </form>
-
+<body class="bg-gray-900 flex items-center justify-center h-screen">
+  <div class="bg-gray-800 p-8 rounded-lg shadow-lg w-96 text-center">
+    <img src="logo-white.png" alt="Logo" class="mx-auto mb-6 w-24">
+    <h1 class="text-white text-2xl mb-4">Iniciar Sesión</h1>
+    <form id="loginForm">
+      <input id="username" type="text" placeholder="Usuario" class="w-full p-2 mb-3 rounded">
+      <input id="password" type="password" placeholder="Contraseña" class="w-full p-2 mb-3 rounded">
+      <button type="submit" class="w-full bg-blue-600 text-white p-2 rounded">Entrar</button>
+    </form>
+    <p id="mensaje" class="text-red-500 mt-3"></p>
+  </div>
   <script>
     document.getElementById("loginForm").addEventListener("submit", async (e) => {
       e.preventDefault();
       const username = document.getElementById("username").value.trim();
       const password = document.getElementById("password").value.trim();
+      const mensaje = document.getElementById("mensaje");
 
-      const resp = await fetch("/api/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password })
-      });
+      try {
+        const resp = await fetch("/api/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username, password })
+        });
 
-      if (resp.ok) {
         const data = await resp.json();
-        localStorage.setItem("token", data.token);
-        localStorage.setItem("role", data.role);
-        localStorage.setItem("username", data.username);
-        window.location.href = "/panel.html";
-      } else {
-        alert("❌ Usuario o contraseña incorrectos");
+
+        if (resp.ok) {
+          localStorage.setItem("token", data.token);
+          localStorage.setItem("role", data.role);
+          localStorage.setItem("username", data.username);
+          window.location.href = "/panel.html";
+        } else {
+          mensaje.textContent = "❌ " + (data.error || "Usuario o contraseña incorrectos");
+        }
+      } catch (err) {
+        mensaje.textContent = "⚠️ Error de conexión con el servidor";
+        console.error(err);
       }
     });
   </script>

@@ -5,6 +5,7 @@ import fs from 'fs';
 import jwt from 'jsonwebtoken';
 import { google } from 'googleapis';
 import fetch from 'node-fetch';
+import PDFDocument from 'pdfkit';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -12,7 +13,7 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 // ================= JWT Middleware =================
@@ -63,7 +64,7 @@ const usersPath = path.join(__dirname, 'data/users.json');
 let users = [];
 try {
   users = JSON.parse(fs.readFileSync(usersPath));
-  console.log("✅ Usuarios cargados desde users.json:", users.map(u => `${u.username} (${u.role})`));
+  console.log("✅ Usuarios cargados:", users.map(u => `${u.username} (${u.role})`));
 } catch (err) {
   console.error("❌ Error cargando users.json:", err.message);
 }
@@ -78,6 +79,53 @@ app.post('/api/login', (req, res) => {
 
 app.get('/api/user', authMiddleware, (req, res) => {
   res.json({ user: req.user });
+});
+
+// PDF de orden
+app.get('/api/ordenes/:radicado/pdf', authMiddleware, async (req, res) => {
+  try {
+    const radicado = req.params.radicado;
+    const resp = await fetch(SHEETS_CSV_URL);
+    const text = await resp.text();
+    const rows = text.trim().split('\n').map(r => r.split(','));
+    const headers = rows[0];
+    const data = rows.slice(1).map(r => Object.fromEntries(headers.map((h,i)=>[h,r[i]])));
+    const orden = data.find(o => o.radicado === radicado);
+    if (!orden) return res.status(404).json({ error: 'Orden no encontrada' });
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename=orden_${radicado}.pdf`);
+    const doc = new PDFDocument({ size: 'LETTER', margin: 50 });
+    doc.pipe(res);
+
+    // Cabecera azul con logo blanco
+    doc.rect(0, 0, doc.page.width, 80).fill('#003366');
+    const logoPath = path.join(__dirname, 'public', 'logo-white.png');
+    if (fs.existsSync(logoPath)) {
+      doc.image(logoPath, doc.page.width / 2 - 40, 15, { width: 80 });
+    }
+    doc.fillColor('white').fontSize(16).text('Orden de Trabajo', 50, 30, { align: 'right' });
+
+    doc.moveDown(3).fillColor('black');
+
+    doc.fontSize(12).text(`Radicado: ${orden.radicado}`);
+    doc.text(`Fecha: ${orden.fecha}`);
+    doc.text(`Inquilino: ${orden.inquilino}`);
+    doc.text(`Descripción: ${orden.descripcion}`);
+    doc.text(`Técnico: ${orden.tecnico}`);
+    doc.text(`Estado: ${orden.estado}`);
+
+    doc.moveDown(2);
+    doc.text('Firma del Inquilino:', { align: 'left' });
+    if (orden.firma) {
+      doc.image(orden.firma, { fit: [200,100] });
+    }
+
+    doc.end();
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error generando PDF' });
+  }
 });
 
 // Status
