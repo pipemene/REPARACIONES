@@ -59,7 +59,14 @@ app.get('/api/ordenes', authMiddleware, async (req, res) => {
 });
 
 // Login (usuarios planos)
-const users = JSON.parse(fs.readFileSync(path.join(__dirname, 'data/users.json')));
+const usersPath = path.join(__dirname, 'data/users.json');
+let users = [];
+try {
+  users = JSON.parse(fs.readFileSync(usersPath));
+  console.log("✅ Usuarios cargados desde users.json:", users.map(u => `${u.username} (${u.role})`));
+} catch (err) {
+  console.error("❌ Error cargando users.json:", err.message);
+}
 
 app.post('/api/login', (req, res) => {
   const { username, password } = req.body;
