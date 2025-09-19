@@ -1,1 +1,119 @@
-<!doctype html><html><body><h2>Panel BlueHome</h2></body></html>
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Dashboard - BlueHome OS</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="flex bg-gray-100 min-h-screen">
+  <aside class="w-64 bg-[#0f172a] text-white flex flex-col">
+    <div class="p-6 text-center border-b border-gray-700">
+      <img src="logo-white.png" class="h-12 mx-auto mb-2" alt="BlueHome Logo">
+      <h1 class="text-lg font-bold">BlueHome OS</h1>
+    </div>
+    <nav class="flex-1 p-4">
+      <ul>
+        <li><button onclick="showTab('crear')" class="w-full text-left py-2 px-3 rounded hover:bg-blue-900">📝 Crear orden</button></li>
+        <li><button onclick="showTab('listar')" class="w-full text-left py-2 px-3 rounded hover:bg-blue-900">📋 Órdenes de trabajo</button></li>
+      </ul>
+    </nav>
+    <div class="p-4 border-t border-gray-700">
+      <button onclick="logout()" class="w-full bg-red-600 py-2 px-3 rounded hover:bg-red-700">🚪 Cerrar sesión</button>
+    </div>
+  </aside>
+
+  <main class="flex-1 p-6">
+    <div id="welcome" class="text-xl font-semibold mb-6"></div>
+
+    <section id="crear" class="hidden">
+      <h2 class="text-2xl font-bold mb-4">Crear nueva orden</h2>
+      <input id="inquilino" placeholder="Inquilino" class="w-full p-2 mb-3 border rounded"><br>
+      <input id="descripcion" placeholder="Descripción" class="w-full p-2 mb-3 border rounded"><br>
+      <select id="tecnico" class="w-full p-2 mb-3 border rounded">
+        <option value="Dayan">Dayan</option>
+        <option value="Mauricio">Mauricio</option>
+        <option value="Jair">Jair</option>
+        <option value="Juandavid">Juandavid</option>
+      </select><br>
+      <button onclick="crearOrden()" class="bg-[#0f172a] text-white px-4 py-2 rounded hover:bg-blue-900">Guardar</button>
+    </section>
+
+    <section id="listar" class="hidden">
+      <h2 class="text-2xl font-bold mb-4">Órdenes de trabajo</h2>
+      <div class="flex gap-4 mb-4">
+        <select id="filtroEstado" class="p-2 border rounded">
+          <option value="">Todos</option>
+          <option value="Abierta">Abierta</option>
+          <option value="Cerrada">Cerrada</option>
+        </select>
+        <select id="filtroTecnico" class="p-2 border rounded">
+          <option value="">Todos</option>
+          <option value="Dayan">Dayan</option>
+          <option value="Mauricio">Mauricio</option>
+          <option value="Jair">Jair</option>
+          <option value="Juandavid">Juandavid</option>
+        </select>
+        <button onclick="cargarOrdenes(1)" class="bg-[#0f172a] text-white px-4 py-2 rounded hover:bg-blue-900">Buscar</button>
+      </div>
+      <table class="w-full bg-white shadow rounded" id="tabla"></table>
+      <div class="flex justify-between mt-4">
+        <button onclick="prevPage()" class="px-4 py-2 bg-gray-300 rounded">Anterior</button>
+        <button onclick="nextPage()" class="px-4 py-2 bg-gray-300 rounded">Siguiente</button>
+      </div>
+    </section>
+  </main>
+
+<script>
+let currentPage=1, pageSize=15, ordenes=[];
+
+function showTab(t){document.getElementById('crear').classList.add('hidden');document.getElementById('listar').classList.add('hidden');document.getElementById(t).classList.remove('hidden');if(t==='listar') cargarOrdenes(1);}
+
+async function loadUser(){
+  const token=localStorage.getItem('token');if(!token){location.href='/';return;}
+  const res=await fetch('/api/user',{headers:{'Authorization':'Bearer '+token}});
+  if(res.ok){const data=await res.json();document.getElementById('welcome').innerText=`Bienvenido, ${data.username} (${data.role})`;}else{location.href='/';}
+}
+function logout(){localStorage.removeItem('token');location.href='/';}
+
+async function crearOrden(){
+  const token=localStorage.getItem('token');
+  const res=await fetch('/api/ordenes',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({inquilino:inquilino.value,descripcion:descripcion.value,tecnico:tecnico.value})});
+  if(res.ok){alert('Orden creada');}else{alert('Error');}
+}
+
+async function cargarOrdenes(page){
+  const token=localStorage.getItem('token');
+  let url='/api/ordenes?';
+  if(filtroEstado.value) url+='estado='+filtroEstado.value+'&';
+  if(filtroTecnico.value) url+='tecnico='+filtroTecnico.value+'&';
+  const res=await fetch(url,{headers:{'Authorization':'Bearer '+token}});
+  if(res.ok){
+    ordenes=await res.json();
+    currentPage=page;
+    renderTabla();
+  }
+}
+function renderTabla(){
+  const tabla=document.getElementById('tabla');
+  tabla.innerHTML='<tr class="bg-gray-200"><th class="p-2">Radicado</th><th>Fecha</th><th>Inquilino</th><th>Descripción</th><th>Técnico</th><th>Estado</th><th>Acciones</th></tr>';
+  const start=(currentPage-1)*pageSize;
+  const end=start+pageSize;
+  const pageItems=ordenes.slice(start,end);
+  pageItems.forEach(o=>{
+    const estadoColor=o.estado==='Cerrada'?'bg-green-200 text-green-800':'bg-red-200 text-red-800';
+    tabla.innerHTML+=`<tr class="border-t"><td class="p-2">${o.radicado}</td><td>${o.fecha}</td><td>${o.inquilino}</td><td>${o.descripcion}</td><td>${o.tecnico}</td><td><span class="px-2 py-1 rounded ${estadoColor}">${o.estado}</span></td><td><button onclick="exportarPDF('${o.radicado}')" class="bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-800">Exportar PDF</button></td></tr>`;
+  });
+}
+function prevPage(){if(currentPage>1) cargarOrdenes(currentPage-1);}
+function nextPage(){if(currentPage*pageSize<ordenes.length) cargarOrdenes(currentPage+1);}
+
+async function exportarPDF(radicado){
+  const token=localStorage.getItem('token');
+  const res=await fetch('/api/ordenes/'+radicado+'/pdf',{method:'POST',headers:{'Authorization':'Bearer '+token}});
+  if(res.ok){alert('PDF generado y subido a Drive');}else{alert('Error exportando PDF');}
+}
+
+loadUser();
+</script>
+</body>
+</html>
