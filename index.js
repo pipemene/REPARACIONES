@@ -4,7 +4,6 @@ import { fileURLToPath } from 'url';
 import fs from 'fs';
 import jwt from 'jsonwebtoken';
 import { google } from 'googleapis';
-import fetch from 'node-fetch';
 import PDFDocument from 'pdfkit';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -16,7 +15,7 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json({ limit: '10mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-// ================= JWT Middleware =================
+// JWT Middleware
 function authMiddleware(req, res, next) {
   const token = req.headers['authorization']?.split(' ')[1];
   if (!token) return res.status(401).json({ error: 'Token requerido' });
@@ -29,10 +28,10 @@ function authMiddleware(req, res, next) {
   }
 }
 
-// ================= Google Sheets Config =================
+// Google Sheets Config
 const SCOPES = ['https://www.googleapis.com/auth/spreadsheets'];
 const SHEET_ID = process.env.SHEET_ID;
-const SHEET_NAME = process.env.SHEET_NAME || 'Hoja1';
+const SHEET_NAME = process.env.SHEET_NAME || 'ordenes';
 
 const auth = new google.auth.GoogleAuth({
   credentials: {
@@ -45,7 +44,7 @@ const auth = new google.auth.GoogleAuth({
   scopes: SCOPES,
 });
 
-// Obtener todas las órdenes desde Sheets
+// Rutas Google Sheets
 app.get('/api/ordenes', authMiddleware, async (req, res) => {
   try {
     const client = await auth.getClient();
@@ -65,7 +64,6 @@ app.get('/api/ordenes', authMiddleware, async (req, res) => {
   }
 });
 
-// Crear nueva orden en Sheets
 app.post('/api/ordenes', authMiddleware, async (req, res) => {
   try {
     const { inquilino, telefono, descripcion, tecnico } = req.body;
@@ -74,7 +72,7 @@ app.post('/api/ordenes', authMiddleware, async (req, res) => {
     const mm = String(fecha.getMonth()+1).padStart(2,'0');
     const yy = String(fecha.getFullYear()).slice(-2);
     const base = dd+mm+yy;
-    const consecutivo = Date.now().toString().slice(-3); // simple consecutivo
+    const consecutivo = Date.now().toString().slice(-3);
     const radicado = base+consecutivo;
 
     const nuevaFila = [
@@ -105,7 +103,6 @@ app.post('/api/ordenes', authMiddleware, async (req, res) => {
   }
 });
 
-// PDF de orden
 app.get('/api/ordenes/:radicado/pdf', authMiddleware, async (req, res) => {
   try {
     const radicado = req.params.radicado;
@@ -156,7 +153,7 @@ app.get('/api/ordenes/:radicado/pdf', authMiddleware, async (req, res) => {
   }
 });
 
-// Login (usuarios planos)
+// LOGIN
 const usersPath = path.join(__dirname, 'data/users.json');
 let users = [];
 try {
@@ -168,18 +165,26 @@ try {
 
 app.post('/api/login', (req, res) => {
   const { username, password } = req.body;
-  const user = users.find(u => u.username === username && u.password === password);
-  if (!user) return res.status(401).json({ error: 'Credenciales inválidas' });
+  console.log("🟡 Intento de login ->", username, password);
+
+  const user = users.find(u => u.username === username);
+  if (!user) {
+    console.log("❌ Usuario no encontrado:", username);
+    return res.status(401).json({ error: 'Credenciales inválidas (usuario)' });
+  }
+
+  if (user.password !== password) {
+    console.log("❌ Contraseña incorrecta para:", username);
+    return res.status(401).json({ error: 'Credenciales inválidas (password)' });
+  }
+
+  console.log("✅ Login correcto:", username);
   const token = jwt.sign({ username: user.username, role: user.role }, process.env.JWT_SECRET || 'bluehome2025', { expiresIn: '7d' });
   res.json({ token, role: user.role, username: user.username });
 });
 
-// Status
 app.get('/status', (req, res) => res.json({ ok: true, mensaje: "Servidor activo 🚀" }));
-
-// Ruta raíz -> login
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'login.html'));
 });
-
 app.listen(PORT, () => console.log(`🚀 Servidor en puerto ${PORT}`));
