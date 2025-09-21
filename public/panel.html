@@ -2,21 +2,23 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Panel Bluehome</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <title>Panel Reparaciones</title>
 </head>
-<body class="bg-gray-100">
-  <div class="p-6 bg-blue-800 text-white">
-    <h1 id="bienvenida"></h1>
-    <button onclick="logout()" class="bg-red-500 px-4 py-2 rounded">Cerrar sesión</button>
-  </div>
+<body>
+  <h2 id="welcome"></h2>
+  <button onclick="logout()">Cerrar sesión</button>
+
   <script>
-    const username = localStorage.getItem("username");
-    const role = localStorage.getItem("role");
-    document.getElementById("bienvenida").textContent = `Bienvenido ${username} (${role})`;
+    function getQueryParam(param) {
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get(param);
+    }
+
+    const usuario = getQueryParam("usuario");
+    const rol = getQueryParam("rol");
+    document.getElementById("welcome").innerText = `Bienvenido, ${usuario} (${rol})`;
 
     function logout() {
-      localStorage.clear();
       window.location.href = "/";
     }
   </script>
