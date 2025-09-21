@@ -1,48 +1,47 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Login - Bluehome</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - Reparaciones</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
 <body class="bg-gray-900 flex items-center justify-center h-screen">
-  <div class="bg-gray-800 p-8 rounded-lg shadow-lg w-96 text-center">
-    <img src="logo-white.png" alt="Logo" class="mx-auto mb-6 w-24">
-    <h1 class="text-white text-2xl mb-4">Iniciar Sesión</h1>
-    <form id="loginForm">
-      <input id="username" type="text" placeholder="Usuario" class="w-full p-2 mb-3 rounded">
-      <input id="password" type="password" placeholder="Contraseña" class="w-full p-2 mb-3 rounded">
-      <button type="submit" class="w-full bg-blue-600 text-white p-2 rounded">Entrar</button>
+  <div class="bg-gray-800 p-8 rounded-lg shadow-lg w-96">
+    <h1 class="text-2xl text-center text-white mb-6">Iniciar Sesión</h1>
+    <form id="loginForm" class="space-y-4">
+      <input id="username" name="username" type="text" placeholder="Usuario" class="w-full p-2 rounded">
+      <input id="password" name="password" type="password" placeholder="Contraseña" class="w-full p-2 rounded">
+      <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white p-2 rounded">Entrar</button>
     </form>
-    <p id="mensaje" class="text-red-500 mt-3"></p>
+    <p id="msg" class="text-center text-sm text-red-400 mt-3"></p>
   </div>
+
   <script>
     document.getElementById("loginForm").addEventListener("submit", async (e) => {
       e.preventDefault();
       const username = document.getElementById("username").value.trim();
       const password = document.getElementById("password").value.trim();
-      const mensaje = document.getElementById("mensaje");
 
-      try {
-        const resp = await fetch("/api/login", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ username, password })
-        });
+      const resp = await fetch("/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password })
+      });
 
-        const data = await resp.json();
+      const data = await resp.json();
+      const msg = document.getElementById("msg");
 
-        if (resp.ok) {
-          localStorage.setItem("token", data.token);
-          localStorage.setItem("role", data.role);
-          localStorage.setItem("username", data.username);
-          window.location.href = "/panel.html";
-        } else {
-          mensaje.textContent = "❌ " + (data.error || "Usuario o contraseña incorrectos");
-        }
-      } catch (err) {
-        mensaje.textContent = "⚠️ Error de conexión con el servidor";
-        console.error(err);
+      if (resp.ok) {
+        msg.textContent = "✅ Login exitoso, redirigiendo...";
+        msg.classList.remove("text-red-400");
+        msg.classList.add("text-green-400");
+        setTimeout(() => {
+          window.location.href = "/panel.html?usuario=" + data.username + "&rol=" + data.role;
+        }, 1000);
+      } else {
+        msg.textContent = "❌ " + (data.error || "Credenciales inválidas");
       }
     });
   </script>
