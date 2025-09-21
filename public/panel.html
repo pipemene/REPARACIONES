@@ -4,48 +4,89 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Panel - Reparaciones BlueHome</title>
-  <link rel="stylesheet" href="styles.css">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
-<body>
-  <header>
-    <img src="logo-bluehome.png" alt="BlueHome Inmobiliaria">
-    <button class="logout" onclick="cerrarSesion()">Cerrar sesión</button>
+<body class="bg-light">
+
+  <!-- Header -->
+  <header class="bg-primary text-white py-3">
+    <div class="container d-flex justify-content-between align-items-center">
+      <div class="flex-grow-1 text-center">
+        <img src="logo-bluehome.png" alt="BlueHome Inmobiliaria" style="height:50px;">
+      </div>
+      <div class="text-end">
+        <button class="btn btn-danger btn-sm" onclick="cerrarSesion()">Cerrar sesión</button>
+      </div>
+    </div>
   </header>
 
-  <nav id="menu">
-    <button onclick="mostrarSeccion('ordenes')">Órdenes</button>
-    <button id="menuUsuarios" onclick="mostrarSeccion('usuarios')" style="display:none;">Usuarios</button>
+  <!-- Navegación -->
+  <nav class="bg-white border-bottom shadow-sm">
+    <div class="container">
+      <ul class="nav nav-tabs justify-content-center" id="menu">
+        <li class="nav-item">
+          <button class="nav-link active" onclick="mostrarSeccion('ordenes')">Órdenes</button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link" id="menuUsuarios" onclick="mostrarSeccion('usuarios')" style="display:none;">Usuarios</button>
+        </li>
+      </ul>
+    </div>
   </nav>
 
-  <main>
+  <!-- Contenido -->
+  <main class="container my-4">
+
     <!-- Órdenes -->
     <section id="ordenes" class="active">
-      <h2>Gestión de Órdenes</h2>
+      <h2 class="mb-3">Gestión de Órdenes</h2>
       <p>Listado en tiempo real desde Google Sheets:</p>
 
-      <table id="tablaOrdenes">
-        <thead>
-          <tr>
-            <th>Radicado</th>
-            <th>Fecha</th>
-            <th>Inquilino</th>
-            <th>Técnico</th>
-            <th>Estado</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr><td colspan="5">Cargando órdenes...</td></tr>
-        </tbody>
-      </table>
+      <div class="table-responsive">
+        <table class="table table-striped table-bordered align-middle" id="tablaOrdenes">
+          <thead class="table-primary">
+            <tr>
+              <th>Radicado</th>
+              <th>Fecha</th>
+              <th>Inquilino</th>
+              <th>Técnico</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td colspan="5" class="text-center">Cargando órdenes...</td></tr>
+          </tbody>
+        </table>
+      </div>
     </section>
 
     <!-- Usuarios -->
-    <section id="usuarios">
-      <h2>Gestión de Usuarios</h2>
+    <section id="usuarios" style="display:none;">
+      <h2 class="mb-3">Gestión de Usuarios</h2>
       <p>Solo visible para el superadmin (PIPEMENE).</p>
+      <div class="table-responsive">
+        <table class="table table-hover table-bordered">
+          <thead class="table-primary">
+            <tr>
+              <th>Usuario</th>
+              <th>Rol</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>PIPEMENE</td><td>Superadmin</td></tr>
+            <tr><td>ARRENDAMIENTOS</td><td>Admin</td></tr>
+            <tr><td>DAYAN</td><td>Técnico</td></tr>
+            <tr><td>MAURICIO</td><td>Técnico</td></tr>
+            <tr><td>JAIR</td><td>Técnico</td></tr>
+            <tr><td>JUANDAVID</td><td>Técnico</td></tr>
+          </tbody>
+        </table>
+      </div>
     </section>
+
   </main>
 
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script>
     // Leer usuario y rol desde la URL
     const params = new URLSearchParams(window.location.search);
@@ -61,8 +102,15 @@
 
     // Función para cambiar secciones
     function mostrarSeccion(id) {
-      document.querySelectorAll("section").forEach(sec => sec.classList.remove("active"));
-      document.getElementById(id).classList.add("active");
+      document.querySelectorAll("main section").forEach(sec => sec.style.display = "none");
+      document.getElementById(id).style.display = "block";
+
+      document.querySelectorAll("#menu .nav-link").forEach(link => link.classList.remove("active"));
+      if (id === "ordenes") {
+        document.querySelector("#menu .nav-link:first-child").classList.add("active");
+      } else {
+        document.getElementById("menuUsuarios").classList.add("active");
+      }
     }
 
     // Función cerrar sesión
@@ -95,12 +143,12 @@
             tbody.appendChild(tr);
           });
         } else {
-          tbody.innerHTML = "<tr><td colspan='5'>No hay órdenes registradas</td></tr>";
+          tbody.innerHTML = "<tr><td colspan='5' class='text-center'>No hay órdenes registradas</td></tr>";
         }
       } catch (err) {
         console.error("Error cargando órdenes:", err);
         document.querySelector("#tablaOrdenes tbody").innerHTML =
-          "<tr><td colspan='5'>⚠️ Error al cargar las órdenes</td></tr>";
+          "<tr><td colspan='5' class='text-center'>⚠️ Error al cargar las órdenes</td></tr>";
       }
     }
 
