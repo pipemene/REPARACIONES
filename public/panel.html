@@ -2,25 +2,110 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Panel Reparaciones</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel - Reparaciones BlueHome</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <h2 id="welcome"></h2>
-  <button onclick="logout()">Cerrar sesión</button>
+  <header>
+    <img src="logo-bluehome.png" alt="BlueHome Inmobiliaria">
+    <button class="logout" onclick="cerrarSesion()">Cerrar sesión</button>
+  </header>
+
+  <nav id="menu">
+    <button onclick="mostrarSeccion('ordenes')">Órdenes</button>
+    <button id="menuUsuarios" onclick="mostrarSeccion('usuarios')" style="display:none;">Usuarios</button>
+  </nav>
+
+  <main>
+    <!-- Órdenes -->
+    <section id="ordenes" class="active">
+      <h2>Gestión de Órdenes</h2>
+      <p>Listado en tiempo real desde Google Sheets:</p>
+
+      <table id="tablaOrdenes">
+        <thead>
+          <tr>
+            <th>Radicado</th>
+            <th>Fecha</th>
+            <th>Inquilino</th>
+            <th>Técnico</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td colspan="5">Cargando órdenes...</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- Usuarios -->
+    <section id="usuarios">
+      <h2>Gestión de Usuarios</h2>
+      <p>Solo visible para el superadmin (PIPEMENE).</p>
+    </section>
+  </main>
 
   <script>
-    function getQueryParam(param) {
-      const urlParams = new URLSearchParams(window.location.search);
-      return urlParams.get(param);
+    // Leer usuario y rol desde la URL
+    const params = new URLSearchParams(window.location.search);
+    const usuario = params.get("usuario");
+    const rol = params.get("rol");
+
+    console.log("Usuario:", usuario, "Rol:", rol);
+
+    // Mostrar menú de usuarios solo si es superadmin
+    if (rol === "superadmin") {
+      document.getElementById("menuUsuarios").style.display = "inline-block";
     }
 
-    const usuario = getQueryParam("usuario");
-    const rol = getQueryParam("rol");
-    document.getElementById("welcome").innerText = `Bienvenido, ${usuario} (${rol})`;
-
-    function logout() {
-      window.location.href = "/";
+    // Función para cambiar secciones
+    function mostrarSeccion(id) {
+      document.querySelectorAll("section").forEach(sec => sec.classList.remove("active"));
+      document.getElementById(id).classList.add("active");
     }
+
+    // Función cerrar sesión
+    function cerrarSesion() {
+      window.location.href = "/login.html";
+    }
+
+    // Cargar órdenes desde backend
+    async function cargarOrdenes() {
+      try {
+        const token = localStorage.getItem("token");
+        const resp = await fetch("/api/ordenes", {
+          headers: { "Authorization": "Bearer " + token }
+        });
+        const data = await resp.json();
+
+        const tbody = document.querySelector("#tablaOrdenes tbody");
+        tbody.innerHTML = "";
+
+        if (data.ok && data.data.length > 0) {
+          data.data.forEach(orden => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+              <td>${orden.radicado || ""}</td>
+              <td>${orden.fecha || ""}</td>
+              <td>${orden.inquilino || ""}</td>
+              <td>${orden.tecnico || ""}</td>
+              <td>${orden.estado || ""}</td>
+            `;
+            tbody.appendChild(tr);
+          });
+        } else {
+          tbody.innerHTML = "<tr><td colspan='5'>No hay órdenes registradas</td></tr>";
+        }
+      } catch (err) {
+        console.error("Error cargando órdenes:", err);
+        document.querySelector("#tablaOrdenes tbody").innerHTML =
+          "<tr><td colspan='5'>⚠️ Error al cargar las órdenes</td></tr>";
+      }
+    }
+
+    // Cargar automáticamente al abrir el panel
+    cargarOrdenes();
   </script>
 </body>
 </html>
