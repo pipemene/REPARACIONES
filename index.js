@@ -1,6 +1,6 @@
 import express from 'express';
 import bodyParser from 'body-parser';
-import fetch from 'node-fetch';
+import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -11,30 +11,27 @@ const app = express();
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// GET órdenes (placeholder: deberías reemplazar con lectura de tu sheet)
-app.get('/api/ordenes', async (req, res) => {
-  try {
-    res.json({ ok: true, data: [] });
-  } catch (err) {
-    res.status(500).json({ ok: false, error: "Error al cargar órdenes" });
+// Cargar usuarios desde users.json
+const usersPath = path.join(__dirname, 'users.json');
+let users = [];
+if (fs.existsSync(usersPath)) {
+  users = JSON.parse(fs.readFileSync(usersPath, 'utf-8'));
+}
+
+// Ruta login
+app.post('/api/login', (req, res) => {
+  const { username, password } = req.body;
+  const user = users.find(u => u.username === username && u.password === password);
+  if (user) {
+    res.json({ success: true, username: user.username, role: user.role });
+  } else {
+    res.json({ success: false });
   }
 });
 
-// POST crear orden -> reenvía al Apps Script
-app.post('/api/ordenes', async (req, res) => {
-  try {
-    const scriptUrl = process.env.GSCRIPT_URL; // URL de tu Apps Script publicado como API
-    const resp = await fetch(scriptUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(req.body)
-    });
-    const data = await resp.json();
-    res.json(data);
-  } catch (err) {
-    console.error("❌ Error enviando orden a Google Sheets:", err);
-    res.status(500).json({ ok: false, error: "Error creando orden" });
-  }
+// Placeholder órdenes para no romper frontend
+app.get('/api/ordenes', (req, res) => {
+  res.json({ ok: true, data: [] });
 });
 
 const PORT = process.env.PORT || 3000;
