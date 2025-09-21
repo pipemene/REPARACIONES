@@ -1,47 +1,41 @@
 import express from 'express';
-import fs from 'fs';
-import path from 'path';
 import bodyParser from 'body-parser';
+import fetch from 'node-fetch';
+import path from 'path';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-const PORT = process.env.PORT || 3000;
-
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-let users = [];
-try {
-  const data = fs.readFileSync(path.join(__dirname, 'users.json'));
-  users = JSON.parse(data);
-  console.log("✅ Usuarios cargados:", users.map(u => u.username).join(", "));
-} catch (err) {
-  console.error("❌ Error cargando usuarios:", err);
-}
-
-// Login endpoint
-app.post('/api/login', (req, res) => {
-  const { username, password } = req.body;
-  console.log("📩 Body recibido:", req.body);
-
-  const user = users.find(u => u.username === username && u.password === password);
-  if (user) {
-    console.log(`✅ Login correcto: ${username} (${user.role})`);
-    res.json({ success: true, role: user.role, username: user.username });
-  } else {
-    console.log(`❌ Usuario o contraseña inválida: ${username}`);
-    res.status(401).json({ success: false, message: "Credenciales inválidas" });
+// GET órdenes (placeholder: deberías reemplazar con lectura de tu sheet)
+app.get('/api/ordenes', async (req, res) => {
+  try {
+    res.json({ ok: true, data: [] });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: "Error al cargar órdenes" });
   }
 });
 
-// Default route
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'login.html'));
+// POST crear orden -> reenvía al Apps Script
+app.post('/api/ordenes', async (req, res) => {
+  try {
+    const scriptUrl = process.env.GSCRIPT_URL; // URL de tu Apps Script publicado como API
+    const resp = await fetch(scriptUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(req.body)
+    });
+    const data = await resp.json();
+    res.json(data);
+  } catch (err) {
+    console.error("❌ Error enviando orden a Google Sheets:", err);
+    res.status(500).json({ ok: false, error: "Error creando orden" });
+  }
 });
 
-app.listen(PORT, () => {
-  console.log(`🚀 Servidor en puerto ${PORT}`);
-});
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`🚀 Servidor en puerto ${PORT}`));
