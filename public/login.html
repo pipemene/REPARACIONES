@@ -24,6 +24,8 @@
       const username = document.getElementById("username").value.trim();
       const password = document.getElementById("password").value.trim();
 
+      console.log("📤 Enviando:", { username, password }); // DEBUG frontend
+
       const resp = await fetch("/api/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -38,7 +40,7 @@
         msg.classList.remove("text-red-400");
         msg.classList.add("text-green-400");
         setTimeout(() => {
-          window.location.href = "/panel.html?usuario=" + data.username + "&rol=" + data.role;
+          window.location.href = "/panel.html?usuario=" + data.usuario + "&rol=" + data.rol;
         }, 1000);
       } else {
         msg.textContent = "❌ " + (data.error || "Credenciales inválidas");
