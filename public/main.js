@@ -2,7 +2,7 @@ function login() {
   const user = document.getElementById("user").value;
   const pass = document.getElementById("pass").value;
 
-  // 🚨 Aquí debes poner tus usuarios/contraseñas reales (mantendré lo que ya definiste)
+  // 🚨 Aquí van tus usuarios/contraseñas reales
   if (user === "admin" && pass === "1234") {
     localStorage.setItem("logueado", "true");
     window.location.href = "index.html";
@@ -12,7 +12,7 @@ function login() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  if (window.location.pathname.endsWith("index.html")) {
+  if (window.location.pathname.endsWith("ordenes.html")) {
     if (localStorage.getItem("logueado") !== "true") {
       window.location.href = "login.html";
     }
@@ -64,8 +64,9 @@ async function cargarOrdenes() {
     const tbody = document.querySelector("#tablaOrdenes tbody");
     tbody.innerHTML = "";
 
-    ordenes.forEach(o => {
+    ordenes.forEach((o, index) => {
       const row = document.createElement("tr");
+
       row.innerHTML = `
         <td>${o.radicado}</td>
         <td>${o.inquilino}</td>
@@ -73,12 +74,63 @@ async function cargarOrdenes() {
         <td>${o.tecnico}</td>
         <td>${o.estado}</td>
         <td>${o.fecha}</td>
+        <td>
+          <button onclick="editarFila(${index})">Editar</button>
+          <button onclick="guardarFila(${index})" style="display:none;">Guardar</button>
+        </td>
       `;
       tbody.appendChild(row);
     });
   } catch (err) {
     console.error("Error cargando órdenes:", err);
   }
+}
+
+function editarFila(index) {
+  const tbody = document.querySelector("#tablaOrdenes tbody");
+  const row = tbody.rows[index];
+
+  // Inquilino
+  const inq = row.cells[1].innerText;
+  row.cells[1].innerHTML = `<input type='text' value='${inq}'>`;
+
+  // Descripción
+  const desc = row.cells[2].innerText;
+  row.cells[2].innerHTML = `<input type='text' value='${desc}'>`;
+
+  // Técnico
+  const tec = row.cells[3].innerText;
+  row.cells[3].innerHTML = `<input type='text' value='${tec}'>`;
+
+  // Estado como select
+  const est = row.cells[4].innerText;
+  row.cells[4].innerHTML = `
+    <select>
+      <option value="Pendiente" ${est === "Pendiente" ? "selected" : ""}>Pendiente</option>
+      <option value="En Proceso" ${est === "En Proceso" ? "selected" : ""}>En Proceso</option>
+      <option value="Finalizado" ${est === "Finalizado" ? "selected" : ""}>Finalizado</option>
+    </select>`;
+
+  row.cells[6].children[0].style.display = "none"; // Editar
+  row.cells[6].children[1].style.display = "inline"; // Guardar
+}
+
+function guardarFila(index) {
+  const tbody = document.querySelector("#tablaOrdenes tbody");
+  const row = tbody.rows[index];
+
+  const inq = row.cells[1].children[0].value;
+  const desc = row.cells[2].children[0].value;
+  const tec = row.cells[3].children[0].value;
+  const est = row.cells[4].children[0].value;
+
+  row.cells[1].innerText = inq;
+  row.cells[2].innerText = desc;
+  row.cells[3].innerText = tec;
+  row.cells[4].innerText = est;
+
+  row.cells[6].children[0].style.display = "inline"; // Editar
+  row.cells[6].children[1].style.display = "none"; // Guardar
 }
 
 function logout() {

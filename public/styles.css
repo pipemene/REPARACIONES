@@ -24,7 +24,7 @@ header nav a {
   border-radius: 10px;
   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
   width: 90%;
-  max-width: 800px;
+  max-width: 1000px;
 }
 input, select, button {
   width: 100%;

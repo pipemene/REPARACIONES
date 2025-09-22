@@ -10,43 +10,15 @@
   <header>
     <h1>Panel Principal</h1>
     <nav>
-      <a href="index.html">Órdenes</a>
+      <a href="index.html">Inicio</a>
+      <a href="ordenes.html">Órdenes de Servicio</a>
       <a href="#" onclick="logout()">Salir</a>
     </nav>
   </header>
 
   <main class="container">
-    <h2>Crear nueva orden</h2>
-    <form id="ordenForm">
-      <input type="text" id="inquilino" placeholder="Nombre Inquilino" required>
-      <input type="text" id="descripcion" placeholder="Descripción" required>
-      <input type="text" id="tecnico" placeholder="Técnico" required>
-      <select id="estado">
-        <option value="Pendiente">Pendiente</option>
-        <option value="En Proceso">En Proceso</option>
-        <option value="Finalizado">Finalizado</option>
-      </select>
-      <button type="submit">Crear Orden</button>
-    </form>
-
-    <p id="mensaje" style="color:green;font-weight:bold;"></p>
-
-    <h2>Órdenes registradas</h2>
-    <table id="tablaOrdenes" border="1" style="width:100%;border-collapse:collapse;">
-      <thead>
-        <tr>
-          <th>Radicado</th>
-          <th>Inquilino</th>
-          <th>Descripción</th>
-          <th>Técnico</th>
-          <th>Estado</th>
-          <th>Fecha</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
+    <h2>Bienvenido al Panel</h2>
+    <p>Selecciona una opción del menú.</p>
   </main>
-
-  <script src="main.js"></script>
 </body>
 </html>
