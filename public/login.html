@@ -2,6 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
+<<<<<<< HEAD
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Login Reparaciones</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -31,6 +32,18 @@
       </div>
     </div>
   </div>
+=======
+  <title>Login Reparaciones</title>
+</head>
+<body>
+  <h2>Iniciar Sesión</h2>
+  <form id="loginForm">
+    <input type="text" id="username" placeholder="Usuario" required><br>
+    <input type="password" id="password" placeholder="Contraseña" required><br>
+    <button type="submit">Ingresar</button>
+  </form>
+  <p id="msg"></p>
+>>>>>>> 244087ff177fef4f6fcef0e1f3889f2ad4627ca4
 
   <script>
     document.getElementById("loginForm").addEventListener("submit", async (e) => {
@@ -38,13 +51,13 @@
       const username = document.getElementById("username").value.trim();
       const password = document.getElementById("password").value.trim();
 
-      try {
-        const resp = await fetch("/api/login", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ username, password })
-        });
+      const resp = await fetch("/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password })
+      });
 
+<<<<<<< HEAD
         const data = await resp.json();
         if (data.success) {
           window.location.href = `/panel.html?usuario=${data.username}&rol=${data.role}`;
@@ -53,6 +66,13 @@
         }
       } catch (err) {
         document.getElementById("msg").innerText = "⚠️ Error en el servidor";
+=======
+      const data = await resp.json();
+      if (data.success) {
+        window.location.href = `/panel.html?usuario=${data.username}&rol=${data.role}`;
+      } else {
+        document.getElementById("msg").innerText = "❌ Credenciales inválidas";
+>>>>>>> 244087ff177fef4f6fcef0e1f3889f2ad4627ca4
       }
     });
   </script>

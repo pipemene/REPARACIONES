@@ -8,6 +8,10 @@
 </head>
 <body class="bg-light">
 
+<<<<<<< HEAD
+=======
+  <!-- Header -->
+>>>>>>> 244087ff177fef4f6fcef0e1f3889f2ad4627ca4
   <header class="bg-primary text-white py-3">
     <div class="container d-flex justify-content-between align-items-center">
       <div class="flex-grow-1 text-center">
@@ -19,6 +23,7 @@
     </div>
   </header>
 
+<<<<<<< HEAD
   <main class="container my-4">
     <h2 class="mb-3">Gestión de Órdenes</h2>
 
@@ -82,15 +87,133 @@
         </tbody>
       </table>
     </div>
+=======
+  <!-- Navegación -->
+  <nav class="bg-white border-bottom shadow-sm">
+    <div class="container">
+      <ul class="nav nav-tabs justify-content-center" id="menu">
+        <li class="nav-item">
+          <button class="nav-link active" onclick="mostrarSeccion('ordenes')">Órdenes</button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link" id="menuUsuarios" onclick="mostrarSeccion('usuarios')" style="display:none;">Usuarios</button>
+        </li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- Contenido -->
+  <main class="container my-4">
+
+    <!-- Órdenes -->
+    <section id="ordenes" class="active">
+      <h2 class="mb-3">Gestión de Órdenes</h2>
+
+      <!-- Formulario nueva orden -->
+      <div class="card mb-4">
+        <div class="card-body">
+          <h5 class="card-title">Nueva Orden</h5>
+          <form id="formOrden" class="row g-3">
+            <div class="col-md-3">
+              <label class="form-label">Fecha</label>
+              <input type="date" id="fecha" class="form-control" required>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Inquilino</label>
+              <input type="text" id="inquilino" class="form-control" required>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Técnico</label>
+              <select id="tecnico" class="form-select" required>
+                <option value="">Seleccione...</option>
+                <option>Dayan</option>
+                <option>Mauricio</option>
+                <option>Jair</option>
+                <option>Juandavid</option>
+              </select>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Estado</label>
+              <select id="estado" class="form-select">
+                <option>Pendiente</option>
+                <option>En proceso</option>
+                <option>Finalizada</option>
+              </select>
+            </div>
+            <div class="col-12">
+              <button type="submit" class="btn btn-primary">Crear Orden</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Tabla -->
+      <div class="table-responsive">
+        <table class="table table-striped table-bordered align-middle" id="tablaOrdenes">
+          <thead class="table-primary">
+            <tr>
+              <th>Radicado</th>
+              <th>Fecha</th>
+              <th>Inquilino</th>
+              <th>Técnico</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td colspan="5" class="text-center">Cargando órdenes...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Usuarios -->
+    <section id="usuarios" style="display:none;">
+      <h2 class="mb-3">Gestión de Usuarios</h2>
+      <p>Solo visible para el superadmin (PIPEMENE).</p>
+    </section>
+
+>>>>>>> 244087ff177fef4f6fcef0e1f3889f2ad4627ca4
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script>
+<<<<<<< HEAD
     function cerrarSesion() {
       window.location.href = "/login.html";
     }
 
     // Cargar órdenes
+=======
+    // Leer usuario y rol desde la URL
+    const params = new URLSearchParams(window.location.search);
+    const usuario = params.get("usuario");
+    const rol = params.get("rol");
+
+    // Mostrar menú de usuarios solo si es superadmin
+    if (rol === "superadmin") {
+      document.getElementById("menuUsuarios").style.display = "inline-block";
+    }
+
+    // Función para cambiar secciones
+    function mostrarSeccion(id) {
+      document.querySelectorAll("main section").forEach(sec => sec.style.display = "none");
+      document.getElementById(id).style.display = "block";
+
+      document.querySelectorAll("#menu .nav-link").forEach(link => link.classList.remove("active"));
+      if (id === "ordenes") {
+        document.querySelector("#menu .nav-link:first-child").classList.add("active");
+      } else {
+        document.getElementById("menuUsuarios").classList.add("active");
+      }
+    }
+
+    // Función cerrar sesión
+    function cerrarSesion() {
+      window.location.href = "/login.html";
+    }
+
+    // Cargar órdenes (GET)
+>>>>>>> 244087ff177fef4f6fcef0e1f3889f2ad4627ca4
     async function cargarOrdenes() {
       try {
         const resp = await fetch("/api/ordenes");
@@ -105,13 +228,17 @@
               <td>${orden.radicado || ""}</td>
               <td>${orden.fecha || ""}</td>
               <td>${orden.inquilino || ""}</td>
+<<<<<<< HEAD
               <td>${orden.descripcion || ""}</td>
+=======
+>>>>>>> 244087ff177fef4f6fcef0e1f3889f2ad4627ca4
               <td>${orden.tecnico || ""}</td>
               <td>${orden.estado || ""}</td>
             `;
             tbody.appendChild(tr);
           });
         } else {
+<<<<<<< HEAD
           tbody.innerHTML = "<tr><td colspan='6' class='text-center'>No hay órdenes registradas</td></tr>";
         }
       } catch (err) {
@@ -121,12 +248,27 @@
     }
 
     // Crear orden
+=======
+          tbody.innerHTML = "<tr><td colspan='5' class='text-center'>No hay órdenes registradas</td></tr>";
+        }
+      } catch (err) {
+        console.error("Error cargando órdenes:", err);
+        document.querySelector("#tablaOrdenes tbody").innerHTML =
+          "<tr><td colspan='5' class='text-center'>⚠️ Error al cargar las órdenes</td></tr>";
+      }
+    }
+
+    // Crear orden (POST)
+>>>>>>> 244087ff177fef4f6fcef0e1f3889f2ad4627ca4
     document.getElementById("formOrden").addEventListener("submit", async (e) => {
       e.preventDefault();
       const nuevaOrden = {
         fecha: document.getElementById("fecha").value,
         inquilino: document.getElementById("inquilino").value,
+<<<<<<< HEAD
         descripcion: document.getElementById("descripcion").value,
+=======
+>>>>>>> 244087ff177fef4f6fcef0e1f3889f2ad4627ca4
         tecnico: document.getElementById("tecnico").value,
         estado: document.getElementById("estado").value
       };
@@ -145,6 +287,10 @@
       }
     });
 
+<<<<<<< HEAD
+=======
+    // Inicializar
+>>>>>>> 244087ff177fef4f6fcef0e1f3889f2ad4627ca4
     cargarOrdenes();
   </script>
 </body>
