@@ -33,6 +33,14 @@
     <p id="mensaje" style="color:green;font-weight:bold;"></p>
 
     <h2>Órdenes registradas</h2>
+    <label for="filtroEstado">Filtrar por estado:</label>
+    <select id="filtroEstado" onchange="cargarOrdenes()">
+      <option value="Todos">Todos</option>
+      <option value="Pendiente">Pendiente</option>
+      <option value="En Proceso">En Proceso</option>
+      <option value="Finalizado">Finalizado</option>
+    </select>
+
     <table id="tablaOrdenes" border="1" style="width:100%;border-collapse:collapse;">
       <thead>
         <tr>
