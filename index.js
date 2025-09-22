@@ -9,6 +9,11 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static("public"));
 
+// Servir usuarios.json para el login
+app.get("/usuarios.json", (req, res) => {
+  res.sendFile(path.join(__dirname, "usuarios.json"));
+});
+
 // Crear orden -> POST App Script
 app.post("/api/ordenes", async (req, res) => {
   try {
