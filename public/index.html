@@ -1,42 +1,27 @@
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html lang="es">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Reparaciones · Login</title>
-  <link rel="stylesheet" href="/styles.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel Principal</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
-<body class="login-body">
-  <div class="login-container">
-    <div class="logo-box">
-      <img src="/logo.png" alt="Blue Home Inmobiliaria" class="logo">
-    </div>
-    <div class="card login-card">
-      <h1>Iniciar sesión</h1>
-      <label>Usuario</label>
-      <input id="lUser" placeholder="Usuario" autofocus />
-      <label>Contraseña</label>
-      <input id="lPass" type="password" placeholder="Contraseña" />
-      <button onclick="doLogin()">Entrar</button>
-      <pre id="out" class="hidden"></pre>
-    </div>
+<body>
+  <div class="container">
+    <h2>Panel Principal</h2>
+    <form id="ordenForm">
+      <input type="text" id="inquilino" placeholder="Nombre Inquilino" required>
+      <input type="text" id="descripcion" placeholder="Descripción" required>
+      <input type="text" id="tecnico" placeholder="Técnico" required>
+      <select id="estado">
+        <option value="Pendiente">Pendiente</option>
+        <option value="En Proceso">En Proceso</option>
+        <option value="Finalizado">Finalizado</option>
+      </select>
+      <button type="submit">Crear Orden</button>
+    </form>
+    <div id="resultado"></div>
   </div>
-
-<script>
-async function doLogin(){
-  const usuario = document.getElementById('lUser').value;
-  const password = document.getElementById('lPass').value;
-  const r = await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body: JSON.stringify({usuario,password})});
-  const j = await r.json();
-  if(j && !j.error){
-    try{ sessionStorage.setItem('session', JSON.stringify(j)); }catch(e){}
-    const q = new URLSearchParams({ rol:j.rol, id:j.id, usuario:j.usuario });
-    window.location.href = '/panel.html?'+q.toString();
-  } else {
-    document.getElementById('out').classList.remove('hidden');
-    document.getElementById('out').textContent = j.error || 'Error';
-  }
-}
-</script>
+  <script src="main.js"></script>
 </body>
 </html>

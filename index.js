@@ -1,80 +1,62 @@
-import express from 'express';
-import bodyParser from 'body-parser';
-import fetch from 'node-fetch';
-import cors from 'cors';
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const express = require("express");
+const cors = require("cors");
+const fetch = require("node-fetch");
+const path = require("path");
+const config = require("./config.json");
 
 const app = express();
 app.use(cors());
-app.use(bodyParser.json());
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.json());
+app.use(express.static("public"));
 
-// Cargar usuarios desde users.json
-const usersPath = path.join(__dirname, 'users.json');
-let users = [];
-if (fs.existsSync(usersPath)) {
-  users = JSON.parse(fs.readFileSync(usersPath, 'utf-8'));
-}
-
-// Ruta login
-app.post('/api/login', (req, res) => {
-  const { username, password } = req.body;
-  const user = users.find(u => u.username === username && u.password === password);
-  if (user) {
-    res.json({ success: true, username: user.username, role: user.role });
-  } else {
-    res.json({ success: false });
-  }
-});
-
-// GET órdenes desde Google Sheets publicado en CSV
-app.get('/api/ordenes', async (req, res) => {
+// Crear orden
+app.post("/api/ordenes", async (req, res) => {
   try {
-    const SHEET_CSV = process.env.SHEET_CSV;
-    const resp = await fetch(SHEET_CSV);
-    const text = await resp.text();
+    const nuevaOrden = {
+      fecha: req.body.fecha,
+      inquilino: req.body.inquilino,
+      descripcion: req.body.descripcion,
+      tecnico: req.body.tecnico,
+      estado: req.body.estado,
+      radicado: config.RADICADO_PREFIX + Date.now()
+    };
 
-    const lines = text.split('\n').filter(l => l.trim() !== '');
-    const data = lines.slice(1).map(row => {
-      const cols = row.split(',');
-      return {
-        radicado: cols[0],
-        fecha: cols[1],
-        inquilino: cols[2],
-        descripcion: cols[3],
-        tecnico: cols[4],
-        estado: cols[5]
-      };
-    });
-
-    res.json({ ok: true, data });
-  } catch (err) {
-    console.error("❌ Error leyendo Google Sheets:", err);
-    res.status(500).json({ ok: false, error: "Error al leer órdenes" });
-  }
-});
-
-// POST crear orden -> reenvía a Apps Script
-app.post('/api/ordenes', async (req, res) => {
-  try {
-    const GSCRIPT_URL = "https://script.google.com/macros/s/AKfycbyC65Cf8mrHdpd14ijd6T_qMAFTtAao4mWgBPTn0KtHc0I4uDAOTEBucYlCZx9HLT4A/exec";
-    const resp = await fetch(GSCRIPT_URL, {
+    const response = await fetch(config.APPSCRIPT_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(req.body)
+      body: JSON.stringify(nuevaOrden)
     });
-    const data = await resp.json();
+
+    const text = await response.text();
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch {
+      return res.status(500).json({
+        error: "Respuesta inválida de AppScript",
+        raw: text
+      });
+    }
+
     res.json(data);
-  } catch (err) {
-    console.error("❌ Error enviando orden a Google Sheets:", err);
-    res.status(500).json({ ok: false, error: "Error creando orden" });
+  } catch (error) {
+    console.error("❌ Error creando orden:", error);
+    res.status(500).json({ error: "No se pudo crear la orden" });
   }
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`🚀 Servidor en puerto ${PORT}`));
+// Leer órdenes desde Google Sheets (CSV)
+app.get("/api/ordenes", async (req, res) => {
+  try {
+    const response = await fetch(config.GSHEET_URL);
+    const text = await response.text();
+    res.send(text);
+  } catch (error) {
+    console.error("❌ Error leyendo Google Sheets:", error);
+    res.status(500).json({ error: "No se pudo leer la hoja" });
+  }
+});
+
+// Puerto
+const PORT = config.PORT || 3000;
+app.listen(PORT, () => console.log(`🚀 Servidor corriendo en puerto ${PORT}`));
