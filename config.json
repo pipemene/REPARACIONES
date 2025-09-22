@@ -1,6 +1,5 @@
 {
   "APPSCRIPT_URL": "https://script.google.com/macros/s/AKfycbyC65Cf8mrHdpd14ijd6T_qMAFTtAao4mWgBPTn0KtHc0I4uDAOTEBucYlCZx9HLT4A/exec",
-  "GSHEET_URL": "https://docs.google.com/spreadsheets/d/e/2PACX-1vTe5bAfaAIJDsDj6Hgz43yQ7gQ9TSm77Pp-g-3zBby_PuCknOfOta_3KsQX0-ofmG7hY6zDcxU3qBcS/pub?gid=0&single=true&output=csv",
   "PORT": 3000,
   "RADICADO_PREFIX": "ORD-"
 }

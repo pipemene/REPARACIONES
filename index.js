@@ -9,6 +9,7 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static("public"));
 
+// Crear orden -> POST App Script
 app.post("/api/ordenes", async (req, res) => {
   try {
     const nuevaOrden = {
@@ -26,17 +27,7 @@ app.post("/api/ordenes", async (req, res) => {
       body: JSON.stringify(nuevaOrden)
     });
 
-    const text = await response.text();
-    let data;
-    try {
-      data = JSON.parse(text);
-    } catch {
-      return res.status(500).json({
-        error: "Respuesta inválida de AppScript",
-        raw: text
-      });
-    }
-
+    const data = await response.json();
     res.json(data);
   } catch (error) {
     console.error("❌ Error creando orden:", error);
@@ -44,17 +35,19 @@ app.post("/api/ordenes", async (req, res) => {
   }
 });
 
+// Leer órdenes -> GET App Script
 app.get("/api/ordenes", async (req, res) => {
   try {
-    const response = await fetch(config.GSHEET_URL);
-    const text = await response.text();
-    res.send(text);
+    const response = await fetch(config.APPSCRIPT_URL);
+    const data = await response.json();
+    res.json(data);
   } catch (error) {
-    console.error("❌ Error leyendo Google Sheets:", error);
+    console.error("❌ Error leyendo órdenes:", error);
     res.status(500).json({ error: "No se pudo leer la hoja" });
   }
 });
 
+// Redirigir raíz al login
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "login.html"));
 });

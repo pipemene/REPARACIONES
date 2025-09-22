@@ -2,6 +2,7 @@ function login() {
   const user = document.getElementById("user").value;
   const pass = document.getElementById("pass").value;
 
+  // 🚨 Aquí debes poner tus usuarios/contraseñas reales (mantendré lo que ya definiste)
   if (user === "admin" && pass === "1234") {
     localStorage.setItem("logueado", "true");
     window.location.href = "index.html";
@@ -58,21 +59,23 @@ document.addEventListener("DOMContentLoaded", () => {
 async function cargarOrdenes() {
   try {
     const res = await fetch("/api/ordenes");
-    const csv = await res.text();
-    const filas = csv.trim().split("\n").map(r => r.split(","));
+    const ordenes = await res.json();
 
     const tbody = document.querySelector("#tablaOrdenes tbody");
     tbody.innerHTML = "";
 
-    for (let i = 1; i < filas.length; i++) {
+    ordenes.forEach(o => {
       const row = document.createElement("tr");
-      filas[i].forEach(col => {
-        const td = document.createElement("td");
-        td.innerText = col;
-        row.appendChild(td);
-      });
+      row.innerHTML = `
+        <td>${o.radicado}</td>
+        <td>${o.inquilino}</td>
+        <td>${o.descripcion}</td>
+        <td>${o.tecnico}</td>
+        <td>${o.estado}</td>
+        <td>${o.fecha}</td>
+      `;
       tbody.appendChild(row);
-    }
+    });
   } catch (err) {
     console.error("Error cargando órdenes:", err);
   }
