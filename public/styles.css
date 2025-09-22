@@ -2,11 +2,18 @@ body {
   font-family: Arial, sans-serif;
   margin: 0;
   padding: 0;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
   background: #f4f4f4;
+}
+header {
+  background: #007bff;
+  color: white;
+  padding: 10px;
+  text-align: center;
+}
+header nav a {
+  color: white;
+  margin: 0 10px;
+  text-decoration: none;
 }
 .container {
   background: white;
@@ -15,6 +22,7 @@ body {
   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
   width: 90%;
   max-width: 400px;
+  margin: 20px auto;
 }
 input, select, button {
   width: 100%;

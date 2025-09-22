@@ -1,7 +1,9 @@
 function login() {
   const user = document.getElementById("user").value;
   const pass = document.getElementById("pass").value;
+
   if (user === "admin" && pass === "1234") {
+    localStorage.setItem("logueado", "true"); // Guardar sesión
     window.location.href = "index.html";
   } else {
     alert("Credenciales incorrectas");
@@ -9,6 +11,12 @@ function login() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+  if (window.location.pathname.endsWith("index.html")) {
+    if (localStorage.getItem("logueado") !== "true") {
+      window.location.href = "login.html";
+    }
+  }
+
   const form = document.getElementById("ordenForm");
   if (form) {
     form.addEventListener("submit", async (e) => {
@@ -34,3 +42,8 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 });
+
+function logout() {
+  localStorage.removeItem("logueado");
+  window.location.href = "login.html";
+}

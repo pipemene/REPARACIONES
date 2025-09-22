@@ -7,8 +7,16 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div class="container">
-    <h2>Panel Principal</h2>
+  <header>
+    <h1>Panel Principal</h1>
+    <nav>
+      <a href="index.html">Órdenes</a>
+      <a href="#" onclick="logout()">Salir</a>
+    </nav>
+  </header>
+
+  <main class="container">
+    <h2>Crear nueva orden</h2>
     <form id="ordenForm">
       <input type="text" id="inquilino" placeholder="Nombre Inquilino" required>
       <input type="text" id="descripcion" placeholder="Descripción" required>
@@ -21,7 +29,8 @@
       <button type="submit">Crear Orden</button>
     </form>
     <div id="resultado"></div>
-  </div>
+  </main>
+
   <script src="main.js"></script>
 </body>
 </html>
