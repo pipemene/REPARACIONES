@@ -2,12 +2,44 @@ const express = require("express");
 const cors = require("cors");
 const fetch = require("node-fetch");
 const path = require("path");
+const fs = require("fs");
 const config = require("./config.json");
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(express.static("public"));
+
+const usersFile = path.join(__dirname, "users.json");
+
+// Endpoints de usuarios
+app.get("/api/usuarios", (req, res) => {
+  const usuarios = JSON.parse(fs.readFileSync(usersFile, "utf8"));
+  res.json(usuarios);
+});
+
+app.post("/api/usuarios", (req, res) => {
+  const usuarios = JSON.parse(fs.readFileSync(usersFile, "utf8"));
+  usuarios.push(req.body);
+  fs.writeFileSync(usersFile, JSON.stringify(usuarios, null, 2));
+  res.json({ ok: true, mensaje: "Usuario creado" });
+});
+
+app.put("/api/usuarios/:username", (req, res) => {
+  let usuarios = JSON.parse(fs.readFileSync(usersFile, "utf8"));
+  usuarios = usuarios.map(u =>
+    u.username === req.params.username ? { ...u, ...req.body } : u
+  );
+  fs.writeFileSync(usersFile, JSON.stringify(usuarios, null, 2));
+  res.json({ ok: true, mensaje: "Usuario actualizado" });
+});
+
+app.delete("/api/usuarios/:username", (req, res) => {
+  let usuarios = JSON.parse(fs.readFileSync(usersFile, "utf8"));
+  usuarios = usuarios.filter(u => u.username !== req.params.username);
+  fs.writeFileSync(usersFile, JSON.stringify(usuarios, null, 2));
+  res.json({ ok: true, mensaje: "Usuario eliminado" });
+});
 
 // Crear orden
 app.post("/api/ordenes", async (req, res) => {
@@ -57,6 +89,5 @@ app.get("/api/ordenes", async (req, res) => {
   }
 });
 
-// Puerto
 const PORT = config.PORT || 3000;
 app.listen(PORT, () => console.log(`🚀 Servidor corriendo en puerto ${PORT}`));
