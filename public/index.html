@@ -11,7 +11,6 @@
     <h1>Panel Principal</h1>
     <nav>
       <a href="index.html">Órdenes</a>
-      <a href="usuarios.html">Usuarios</a>
       <a href="#" onclick="logout()">Salir</a>
     </nav>
   </header>
@@ -29,7 +28,23 @@
       </select>
       <button type="submit">Crear Orden</button>
     </form>
-    <div id="resultado"></div>
+
+    <p id="mensaje" style="color:green;font-weight:bold;"></p>
+
+    <h2>Órdenes registradas</h2>
+    <table id="tablaOrdenes" border="1" style="width:100%;border-collapse:collapse;">
+      <thead>
+        <tr>
+          <th>Radicado</th>
+          <th>Inquilino</th>
+          <th>Descripción</th>
+          <th>Técnico</th>
+          <th>Estado</th>
+          <th>Fecha</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
   </main>
 
   <script src="main.js"></script>

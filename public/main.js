@@ -1,102 +1,84 @@
-async function login() {
+function login() {
   const user = document.getElementById("user").value;
   const pass = document.getElementById("pass").value;
 
-  try {
-    const res = await fetch("/api/usuarios");
-    const usuarios = await res.json();
-
-    const encontrado = usuarios.find(u => u.username === user && u.password === pass);
-
-    if (encontrado) {
-      localStorage.setItem("logueado", "true");
-      localStorage.setItem("usuario", encontrado.username);
-      localStorage.setItem("rol", encontrado.role);
-
-      if (encontrado.role === "superadmin") {
-        window.location.href = "usuarios.html";
-      } else {
-        window.location.href = "index.html";
-      }
-    } else {
-      alert("Credenciales incorrectas");
-    }
-  } catch (err) {
-    alert("Error validando usuario");
+  if (user === "admin" && pass === "1234") {
+    localStorage.setItem("logueado", "true");
+    window.location.href = "index.html";
+  } else {
+    alert("Credenciales incorrectas");
   }
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  if (window.location.pathname.endsWith("index.html") || window.location.pathname.endsWith("usuarios.html")) {
+  if (window.location.pathname.endsWith("index.html")) {
     if (localStorage.getItem("logueado") !== "true") {
       window.location.href = "login.html";
+    }
+
+    cargarOrdenes();
+
+    const form = document.getElementById("ordenForm");
+    if (form) {
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const orden = {
+          fecha: new Date().toLocaleString(),
+          inquilino: document.getElementById("inquilino").value,
+          descripcion: document.getElementById("descripcion").value,
+          tecnico: document.getElementById("tecnico").value,
+          estado: document.getElementById("estado").value
+        };
+        try {
+          const res = await fetch("/api/ordenes", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(orden)
+          });
+          const data = await res.json();
+
+          if (data.radicado) {
+            document.getElementById("mensaje").innerText =
+              "✅ Orden generada con radicado: " + data.radicado;
+          } else {
+            document.getElementById("mensaje").innerText =
+              "⚠️ Orden enviada pero no se recibió radicado";
+          }
+
+          form.reset();
+          cargarOrdenes();
+        } catch (err) {
+          document.getElementById("mensaje").innerText = "❌ Error creando orden";
+        }
+      });
     }
   }
 });
 
-function logout() {
-  localStorage.clear();
-  window.location.href = "login.html";
-}
+async function cargarOrdenes() {
+  try {
+    const res = await fetch("/api/ordenes");
+    const csv = await res.text();
+    const filas = csv.trim().split("\n").map(r => r.split(","));
 
-async function cargarUsuarios() {
-  const res = await fetch("/api/usuarios");
-  const usuarios = await res.json();
+    const tbody = document.querySelector("#tablaOrdenes tbody");
+    tbody.innerHTML = "";
 
-  const tabla = document.getElementById("tablaUsuarios");
-  if (!tabla) return;
-
-  tabla.innerHTML = usuarios.map(u => `
-    <tr>
-      <td>${u.username}</td>
-      <td>${u.role}</td>
-      <td>
-        <button onclick="editarUsuario('${u.username}')">✏️ Editar</button>
-        <button onclick="eliminarUsuario('${u.username}')">🗑️ Eliminar</button>
-      </td>
-    </tr>
-  `).join("");
-}
-
-function mostrarFormulario(username="") {
-  document.getElementById("formModal").style.display = "block";
-  document.getElementById("tituloForm").innerText = username ? "Editar Usuario" : "Nuevo Usuario";
-  document.getElementById("username").value = username;
-}
-
-function cerrarFormulario() {
-  document.getElementById("formModal").style.display = "none";
-}
-
-async function guardarUsuario() {
-  const user = document.getElementById("username").value;
-  const pass = document.getElementById("password").value;
-  const role = document.getElementById("role").value;
-
-  const payload = { username: user, password: pass, role };
-
-  const method = document.getElementById("tituloForm").innerText.includes("Editar") ? "PUT" : "POST";
-  const url = method === "PUT" ? `/api/usuarios/${user}` : "/api/usuarios";
-
-  await fetch(url, {
-    method,
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload)
-  });
-
-  cerrarFormulario();
-  cargarUsuarios();
-}
-
-async function editarUsuario(username) {
-  mostrarFormulario(username);
-}
-
-async function eliminarUsuario(username) {
-  if (confirm("¿Seguro que deseas eliminar este usuario?")) {
-    await fetch(`/api/usuarios/${username}`, { method: "DELETE" });
-    cargarUsuarios();
+    for (let i = 1; i < filas.length; i++) {
+      const row = document.createElement("tr");
+      filas[i].forEach(col => {
+        const td = document.createElement("td");
+        td.innerText = col;
+        row.appendChild(td);
+      });
+      tbody.appendChild(row);
+    }
+  } catch (err) {
+    console.error("Error cargando órdenes:", err);
   }
 }
 
-document.addEventListener("DOMContentLoaded", cargarUsuarios);
+function logout() {
+  localStorage.removeItem("logueado");
+  window.location.href = "login.html";
+}
