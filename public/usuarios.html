@@ -44,6 +44,15 @@
     </table>
   </main>
 
+  <script>
+    if (localStorage.getItem("logueado") !== "true") {
+      window.location.href = "/login.html";
+    }
+    if (localStorage.getItem("rol") !== "SuperAdmin") {
+      alert("Acceso denegado");
+      window.location.href = "index.html";
+    }
+  </script>
   <script src="main.js"></script>
 </body>
 </html>
