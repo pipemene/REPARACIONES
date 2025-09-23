@@ -3,17 +3,26 @@ async function login() {
   const user = document.getElementById("user").value;
   const pass = document.getElementById("pass").value;
 
-  const res = await fetch("/usuarios.json");
-  const usuarios = await res.json();
-  const encontrado = usuarios.find(u => u.user === user && u.pass === pass);
+  try {
+    const res = await fetch("/api/usuarios");
+    const usuarios = await res.json();
+    console.log("Usuarios cargados:", usuarios);
+    const encontrado = usuarios.find(u => 
+      (u.user === user || u.usuario === user) && 
+      (u.pass === pass || u.clave === pass)
+    );
 
-  if (encontrado) {
-    localStorage.setItem("logueado", "true");
-    localStorage.setItem("rol", encontrado.rol);
-    localStorage.setItem("usuario", encontrado.user);
-    window.location.href = "index.html";
-  } else {
-    alert("Credenciales incorrectas");
+    if (encontrado) {
+      localStorage.setItem("logueado", "true");
+      localStorage.setItem("rol", encontrado.rol);
+      localStorage.setItem("usuario", encontrado.user || encontrado.usuario);
+      window.location.href = "index.html";
+    } else {
+      alert("Credenciales incorrectas");
+    }
+  } catch (err) {
+    console.error("Error cargando usuarios:", err);
+    alert("❌ Error al verificar usuarios. Revisa el backend.");
   }
 }
 
@@ -26,19 +35,19 @@ function logout() {
 
 // ==== USUARIOS ====
 async function cargarUsuarios() {
-  const res = await fetch("/usuarios.json");
+  const res = await fetch("/api/usuarios");
   const usuarios = await res.json();
   const tbody = document.querySelector("#tablaUsuarios tbody");
   tbody.innerHTML = "";
   usuarios.forEach(u => {
     const row = document.createElement("tr");
     row.innerHTML = `
-      <td>${u.user}</td>
+      <td>${u.user || u.usuario}</td>
       <td><input type='text' value='${u.rol}'></td>
-      <td><input type='password' value='${u.pass}'></td>
+      <td><input type='password' value='${u.pass || u.clave}'></td>
       <td>
-        <button onclick="guardarUsuario('${u.user}', this)">Guardar</button>
-        <button onclick="eliminarUsuario('${u.user}')">Eliminar</button>
+        <button onclick="guardarUsuario('${u.user || u.usuario}', this)">Guardar</button>
+        <button onclick="eliminarUsuario('${u.user || u.usuario}')">Eliminar</button>
       </td>`;
     tbody.appendChild(row);
   });
@@ -48,7 +57,11 @@ async function guardarUsuario(user, btn) {
   const row = btn.parentElement.parentElement;
   const rol = row.cells[1].children[0].value;
   const pass = row.cells[2].children[0].value;
-  await fetch("/api/usuarios/" + user, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ rol, pass }) });
+  await fetch("/api/usuarios/" + user, { 
+    method: "PUT", 
+    headers: { "Content-Type": "application/json" }, 
+    body: JSON.stringify({ rol, pass }) 
+  });
   cargarUsuarios();
 }
 
@@ -86,7 +99,11 @@ async function guardarOrden(radicado, btn) {
   const row = btn.parentElement.parentElement;
   const tecnico = row.cells[3].children[0].value;
   const estado = row.cells[4].children[0].value;
-  await fetch("/api/ordenes/" + radicado, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ tecnico, estado }) });
+  await fetch("/api/ordenes/" + radicado, { 
+    method: "PUT", 
+    headers: { "Content-Type": "application/json" }, 
+    body: JSON.stringify({ tecnico, estado }) 
+  });
   cargarOrdenes();
 }
 
@@ -94,7 +111,6 @@ async function guardarOrden(radicado, btn) {
 document.addEventListener("DOMContentLoaded", () => {
   const path = window.location.pathname;
 
-  // Validación de sesión en páginas protegidas
   if (["/index.html", "/usuarios.html", "/ordenes.html"].some(p => path.endsWith(p))) {
     if (localStorage.getItem("logueado") !== "true") {
       alert("⚠️ Sesión expirada, vuelve a iniciar sesión");
@@ -117,7 +133,11 @@ document.addEventListener("DOMContentLoaded", () => {
         pass: document.getElementById("nuevoPass").value,
         rol: document.getElementById("nuevoRol").value
       };
-      await fetch("/api/usuarios", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(nuevo) });
+      await fetch("/api/usuarios", { 
+        method: "POST", 
+        headers: { "Content-Type": "application/json" }, 
+        body: JSON.stringify(nuevo) 
+      });
       cargarUsuarios();
       e.target.reset();
     });
@@ -134,7 +154,11 @@ document.addEventListener("DOMContentLoaded", () => {
         tecnico: document.getElementById("tecnico").value,
         estado: document.getElementById("estado").value
       };
-      const res = await fetch("/api/ordenes", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(orden) });
+      const res = await fetch("/api/ordenes", { 
+        method: "POST", 
+        headers: { "Content-Type": "application/json" }, 
+        body: JSON.stringify(orden) 
+      });
       const data = await res.json();
       if (data.radicado) {
         document.getElementById("mensaje").innerText = "✅ Orden generada con radicado: " + data.radicado;
