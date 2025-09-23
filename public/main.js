@@ -1,15 +1,3 @@
-// ==== VALIDACIÓN DE SESIÓN ====
-document.addEventListener("DOMContentLoaded", () => {
-  const path = window.location.pathname;
-  if (["/index.html", "/usuarios.html", "/ordenes.html"].some(p => path.endsWith(p))) {
-    if (localStorage.getItem("logueado") !== "true") {
-      alert("⚠️ Sesión expirada, vuelve a iniciar sesión");
-      window.location.href = "/login.html";
-      return;
-    }
-  }
-});
-
 // ==== LOGIN ====
 async function login() {
   const user = document.getElementById("user").value;
@@ -105,6 +93,15 @@ async function guardarOrden(radicado, btn) {
 // ==== DOM READY ====
 document.addEventListener("DOMContentLoaded", () => {
   const path = window.location.pathname;
+
+  // Validación de sesión en páginas protegidas
+  if (["/index.html", "/usuarios.html", "/ordenes.html"].some(p => path.endsWith(p))) {
+    if (localStorage.getItem("logueado") !== "true") {
+      alert("⚠️ Sesión expirada, vuelve a iniciar sesión");
+      window.location.href = "/login.html";
+      return;
+    }
+  }
 
   if (path.endsWith("usuarios.html")) {
     if (localStorage.getItem("rol") !== "SuperAdmin") {
