@@ -84,6 +84,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 });
+
 // ==== GESTIÓN DE USUARIOS ====
 async function cargarUsuarios() {
   const res = await fetch("/usuarios.json");
@@ -120,6 +121,7 @@ async function eliminarUsuario(user) {
   await fetch("/api/usuarios/" + user, { method: "DELETE" });
   cargarUsuarios();
 }
+
 // ==== ÓRDENES ====
 async function cargarOrdenes() {
   try {
