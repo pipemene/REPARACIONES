@@ -21,11 +21,16 @@
     <h2>Bienvenido al Panel</h2>
     <p>Selecciona una opción del menú.</p>
   </main>
+
   <script>
+    if (localStorage.getItem("logueado") !== "true") {
+      window.location.href = "/login.html";
+    }
     const rol = localStorage.getItem("rol");
     if (rol === "SuperAdmin") {
       document.getElementById("menuUsuarios").style.display = "inline";
     }
   </script>
+  <script src="main.js"></script>
 </body>
 </html>

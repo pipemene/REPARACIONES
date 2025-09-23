@@ -63,6 +63,15 @@
     </table>
   </main>
 
+  <script>
+    if (localStorage.getItem("logueado") !== "true") {
+      window.location.href = "/login.html";
+    }
+    const rol = localStorage.getItem("rol");
+    if (rol === "SuperAdmin") {
+      document.getElementById("menuUsuarios").style.display = "inline";
+    }
+  </script>
   <script src="main.js"></script>
 </body>
 </html>
