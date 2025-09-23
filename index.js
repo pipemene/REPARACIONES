@@ -2,7 +2,6 @@ const express = require("express");
 const cors = require("cors");
 const fetch = require("node-fetch");
 const path = require("path");
-const fs = require("fs-extra");
 const config = require("./config.json");
 
 const app = express();
@@ -10,62 +9,86 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static("public"));
 
-const usuariosPath = path.join(__dirname, "usuarios.json");
+const APPSCRIPT_URL = config.APPSCRIPT_URL;
 
-// Servir usuarios.json
-app.get("/usuarios.json", (req, res) => {
-  res.sendFile(usuariosPath);
+// ==== USUARIOS ====
+app.get("/usuarios.json", async (req, res) => {
+  try {
+    const response = await fetch(`${APPSCRIPT_URL}?action=getUsuarios`);
+    const data = await response.json();
+    res.json(data);
+  } catch (err) {
+    console.error("❌ Error obteniendo usuarios:", err);
+    res.status(500).json({ error: "No se pudieron obtener los usuarios" });
+  }
 });
 
-// CRUD de usuarios
 app.post("/api/usuarios", async (req, res) => {
   try {
-    const usuarios = await fs.readJson(usuariosPath);
-    usuarios.push(req.body);
-    await fs.writeJson(usuariosPath, usuarios, { spaces: 2 });
-    res.json({ ok: true });
+    const response = await fetch(APPSCRIPT_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "addUsuario", ...req.body })
+    });
+    const data = await response.json();
+    res.json(data);
   } catch (err) {
+    console.error("❌ Error creando usuario:", err);
     res.status(500).json({ error: "No se pudo crear el usuario" });
   }
 });
 
 app.put("/api/usuarios/:user", async (req, res) => {
   try {
-    const usuarios = await fs.readJson(usuariosPath);
-    const index = usuarios.findIndex(u => u.user === req.params.user);
-    if (index === -1) return res.status(404).json({ error: "Usuario no encontrado" });
-    usuarios[index] = { ...usuarios[index], ...req.body };
-    await fs.writeJson(usuariosPath, usuarios, { spaces: 2 });
-    res.json({ ok: true });
+    const response = await fetch(APPSCRIPT_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "updateUsuario", user: req.params.user, ...req.body })
+    });
+    const data = await response.json();
+    res.json(data);
   } catch (err) {
+    console.error("❌ Error actualizando usuario:", err);
     res.status(500).json({ error: "No se pudo actualizar el usuario" });
   }
 });
 
 app.delete("/api/usuarios/:user", async (req, res) => {
   try {
-    let usuarios = await fs.readJson(usuariosPath);
-    usuarios = usuarios.filter(u => u.user !== req.params.user);
-    await fs.writeJson(usuariosPath, usuarios, { spaces: 2 });
-    res.json({ ok: true });
+    const response = await fetch(APPSCRIPT_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "deleteUsuario", user: req.params.user })
+    });
+    const data = await response.json();
+    res.json(data);
   } catch (err) {
+    console.error("❌ Error eliminando usuario:", err);
     res.status(500).json({ error: "No se pudo eliminar el usuario" });
   }
 });
 
-// Crear orden
+// ==== ÓRDENES ====
+app.get("/api/ordenes", async (req, res) => {
+  try {
+    const response = await fetch(`${APPSCRIPT_URL}?action=getOrdenes`);
+    const data = await response.json();
+    res.json(data);
+  } catch (err) {
+    console.error("❌ Error obteniendo órdenes:", err);
+    res.status(500).json({ error: "No se pudieron obtener las órdenes" });
+  }
+});
+
 app.post("/api/ordenes", async (req, res) => {
   try {
     const nuevaOrden = {
-      fecha: req.body.fecha,
-      inquilino: req.body.inquilino,
-      descripcion: req.body.descripcion,
-      tecnico: req.body.tecnico || "",
-      estado: req.body.estado,
-      radicado: config.RADICADO_PREFIX + Date.now()
+      action: "addOrden",
+      radicado: config.RADICADO_PREFIX + Date.now(),
+      ...req.body
     };
 
-    const response = await fetch(config.APPSCRIPT_URL, {
+    const response = await fetch(APPSCRIPT_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(nuevaOrden)
@@ -73,25 +96,28 @@ app.post("/api/ordenes", async (req, res) => {
 
     const data = await response.json();
     res.json(data);
-  } catch (error) {
-    console.error("❌ Error creando orden:", error);
+  } catch (err) {
+    console.error("❌ Error creando orden:", err);
     res.status(500).json({ error: "No se pudo crear la orden" });
   }
 });
 
-// Leer órdenes
-app.get("/api/ordenes", async (req, res) => {
+app.put("/api/ordenes/:radicado", async (req, res) => {
   try {
-    const response = await fetch(config.APPSCRIPT_URL);
+    const response = await fetch(APPSCRIPT_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "updateOrden", radicado: req.params.radicado, ...req.body })
+    });
     const data = await response.json();
     res.json(data);
-  } catch (error) {
-    console.error("❌ Error leyendo órdenes:", error);
-    res.status(500).json({ error: "No se pudo leer la hoja" });
+  } catch (err) {
+    console.error("❌ Error actualizando orden:", err);
+    res.status(500).json({ error: "No se pudo actualizar la orden" });
   }
 });
 
-// Redirigir raíz al login
+// ==== REDIRECCIÓN ====
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "login.html"));
 });
