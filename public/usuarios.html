@@ -10,37 +10,39 @@
   <header>
     <h1>Gestión de Usuarios</h1>
     <nav>
-      <a href="index.html">Órdenes</a>
-      <a href="usuarios.html">Usuarios</a>
+      <a href="index.html">Inicio</a>
+      <a href="ordenes.html">Órdenes de Servicio</a>
+      <a href="usuarios.html">Gestión de Usuarios</a>
       <a href="#" onclick="logout()">Salir</a>
     </nav>
   </header>
 
   <main class="container">
-    <button onclick="mostrarFormulario()">➕ Crear Usuario</button>
-    <table border="1" width="100%">
+    <h2>Crear Usuario</h2>
+    <form id="usuarioForm">
+      <input type="text" id="nuevoUser" placeholder="Usuario" required>
+      <input type="password" id="nuevoPass" placeholder="Contraseña" required>
+      <select id="nuevoRol">
+        <option value="SuperAdmin">SuperAdmin</option>
+        <option value="Admin">Admin</option>
+        <option value="Tecnico">Tecnico</option>
+      </select>
+      <button type="submit">Crear</button>
+    </form>
+
+    <h2>Usuarios Registrados</h2>
+    <table id="tablaUsuarios" border="1" style="width:100%;border-collapse:collapse;">
       <thead>
         <tr>
           <th>Usuario</th>
           <th>Rol</th>
+          <th>Contraseña</th>
           <th>Acciones</th>
         </tr>
       </thead>
-      <tbody id="tablaUsuarios"></tbody>
+      <tbody></tbody>
     </table>
   </main>
-
-  <div id="formModal" style="display:none; background:#fff; padding:20px; border:1px solid #ccc;">
-    <h2 id="tituloForm">Nuevo Usuario</h2>
-    <input type="text" id="username" placeholder="Usuario">
-    <input type="password" id="password" placeholder="Clave">
-    <select id="role">
-      <option value="admin">Admin</option>
-      <option value="tecnico">Técnico</option>
-    </select>
-    <button onclick="guardarUsuario()">Guardar</button>
-    <button onclick="cerrarFormulario()">Cancelar</button>
-  </div>
 
   <script src="main.js"></script>
 </body>

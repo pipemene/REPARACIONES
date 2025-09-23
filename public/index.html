@@ -12,6 +12,7 @@
     <nav>
       <a href="index.html">Inicio</a>
       <a href="ordenes.html">Órdenes de Servicio</a>
+      <a href="usuarios.html" id="menuUsuarios" style="display:none;">Gestión de Usuarios</a>
       <a href="#" onclick="logout()">Salir</a>
     </nav>
   </header>
@@ -20,5 +21,11 @@
     <h2>Bienvenido al Panel</h2>
     <p>Selecciona una opción del menú.</p>
   </main>
+  <script>
+    const rol = localStorage.getItem("rol");
+    if (rol === "SuperAdmin") {
+      document.getElementById("menuUsuarios").style.display = "inline";
+    }
+  </script>
 </body>
 </html>
