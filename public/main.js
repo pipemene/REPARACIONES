@@ -1,3 +1,4 @@
+// ==== LOGIN ====
 async function login() {
   const user = document.getElementById("user").value;
   const pass = document.getElementById("pass").value;
@@ -16,51 +17,112 @@ async function login() {
   }
 }
 
+function logout() {
+  localStorage.removeItem("logueado");
+  localStorage.removeItem("rol");
+  localStorage.removeItem("usuario");
+  window.location.href = "login.html";
+}
+
+// ==== DOM READY ====
 document.addEventListener("DOMContentLoaded", () => {
-  if (window.location.pathname.endsWith("ordenes.html")) {
+  const path = window.location.pathname;
+
+  // Gestión de usuarios
+  if (path.endsWith("usuarios.html")) {
+    if (localStorage.getItem("rol") !== "SuperAdmin") {
+      alert("Acceso denegado");
+      window.location.href = "index.html";
+      return;
+    }
+    cargarUsuarios();
+    document.getElementById("usuarioForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const nuevo = {
+        user: document.getElementById("nuevoUser").value,
+        pass: document.getElementById("nuevoPass").value,
+        rol: document.getElementById("nuevoRol").value
+      };
+      await fetch("/api/usuarios", { 
+        method: "POST", 
+        headers: { "Content-Type": "application/json" }, 
+        body: JSON.stringify(nuevo) 
+      });
+      cargarUsuarios();
+      e.target.reset();
+    });
+  }
+
+  // Órdenes
+  if (path.endsWith("ordenes.html")) {
     if (localStorage.getItem("logueado") !== "true") {
       window.location.href = "login.html";
     }
-
     cargarOrdenes();
-
-    const form = document.getElementById("ordenForm");
-    if (form) {
-      form.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        const orden = {
-          fecha: new Date().toLocaleString(),
-          inquilino: document.getElementById("inquilino").value,
-          descripcion: document.getElementById("descripcion").value,
-          tecnico: document.getElementById("tecnico").value,
-          estado: document.getElementById("estado").value
-        };
-        try {
-          const res = await fetch("/api/ordenes", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(orden)
-          });
-          const data = await res.json();
-
-          if (data.radicado) {
-            document.getElementById("mensaje").innerText =
-              "✅ Orden generada con radicado: " + data.radicado;
-          } else {
-            document.getElementById("mensaje").innerText =
-              "⚠️ Orden enviada pero no se recibió radicado";
-          }
-
-          form.reset();
-          cargarOrdenes();
-        } catch (err) {
-          document.getElementById("mensaje").innerText = "❌ Error creando orden";
-        }
+    document.getElementById("ordenForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const orden = {
+        fecha: new Date().toLocaleString(),
+        inquilino: document.getElementById("inquilino").value,
+        descripcion: document.getElementById("descripcion").value,
+        tecnico: document.getElementById("tecnico").value,
+        estado: document.getElementById("estado").value
+      };
+      const res = await fetch("/api/ordenes", { 
+        method: "POST", 
+        headers: { "Content-Type": "application/json" }, 
+        body: JSON.stringify(orden) 
       });
-    }
+      const data = await res.json();
+      if (data.radicado) {
+        document.getElementById("mensaje").innerText = "✅ Orden generada con radicado: " + data.radicado;
+      } else {
+        document.getElementById("mensaje").innerText = "❌ Error creando orden";
+      }
+      e.target.reset();
+      cargarOrdenes();
+    });
   }
 });
 
+// ==== GESTIÓN DE USUARIOS ====
+async function cargarUsuarios() {
+  const res = await fetch("/usuarios.json");
+  const usuarios = await res.json();
+  const tbody = document.querySelector("#tablaUsuarios tbody");
+  tbody.innerHTML = "";
+  usuarios.forEach(u => {
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td>${u.user}</td>
+      <td><input type='text' value='${u.rol}'></td>
+      <td><input type='password' value='${u.pass}'></td>
+      <td>
+        <button onclick="guardarUsuario('${u.user}', this)">Guardar</button>
+        <button onclick="eliminarUsuario('${u.user}')">Eliminar</button>
+      </td>`;
+    tbody.appendChild(row);
+  });
+}
+
+async function guardarUsuario(user, btn) {
+  const row = btn.parentElement.parentElement;
+  const rol = row.cells[1].children[0].value;
+  const pass = row.cells[2].children[0].value;
+  await fetch("/api/usuarios/" + user, { 
+    method: "PUT", 
+    headers: { "Content-Type": "application/json" }, 
+    body: JSON.stringify({ rol, pass }) 
+  });
+  cargarUsuarios();
+}
+
+async function eliminarUsuario(user) {
+  await fetch("/api/usuarios/" + user, { method: "DELETE" });
+  cargarUsuarios();
+}
+
+// ==== ÓRDENES ====
 async function cargarOrdenes() {
   try {
     const filtro = document.getElementById("filtroEstado").value;
@@ -76,7 +138,7 @@ async function cargarOrdenes() {
     }
 
     // Filtrar por estado
-    if (filtro !== "Todos") {
+    if (filtro && filtro !== "Todos") {
       ordenes = ordenes.filter(o => o.estado === filtro);
     }
 
@@ -90,7 +152,7 @@ async function cargarOrdenes() {
         <td>${o.radicado}</td>
         <td>${o.inquilino}</td>
         <td>${o.descripcion}</td>
-        <td>${o.tecnico}</td>
+        <td>${o.tecnico || ""}</td>
         <td>${o.estado}</td>
         <td>${o.fecha}</td>
         <td>
@@ -116,7 +178,13 @@ function editarFila(index) {
   row.cells[2].innerHTML = `<input type='text' value='${desc}'>`;
 
   const tec = row.cells[3].innerText;
-  row.cells[3].innerHTML = `<input type='text' value='${tec}'>`;
+  row.cells[3].innerHTML = `
+    <select>
+      <option value="">-- Sin asignar --</option>
+      <option value="DAYAN" ${tec === "DAYAN" ? "selected" : ""}>DAYAN</option>
+      <option value="MAURICIO" ${tec === "MAURICIO" ? "selected" : ""}>MAURICIO</option>
+      <option value="JAIR" ${tec === "JAIR" ? "selected" : ""}>JAIR</option>
+    </select>`;
 
   const est = row.cells[4].innerText;
   row.cells[4].innerHTML = `
@@ -146,11 +214,4 @@ function guardarFila(index) {
 
   row.cells[6].children[0].style.display = "inline";
   row.cells[6].children[1].style.display = "none";
-}
-
-function logout() {
-  localStorage.removeItem("logueado");
-  localStorage.removeItem("rol");
-  localStorage.removeItem("usuario");
-  window.location.href = "login.html";
 }
