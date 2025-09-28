@@ -3,36 +3,20 @@
 <head>
   <meta charset="UTF-8">
   <title>Usuarios - Blue Home</title>
-  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="styles.css">
+  <script src="config.js"></script>
+  <script src="usuarios.js" defer></script>
 </head>
 <body>
-  <header>
-    <img src="logo-bluehome.png" class="logo" alt="Blue Home Logo">
-    <nav>
-      <a href="panel.html">Inicio</a>
-      <a href="ordenes.html">Órdenes</a>
-      <a href="#" onclick="logout()">Salir</a>
-    </nav>
-  </header>
-  <main>
-    <h2>Gestión de Usuarios</h2>
-    <form id="formUsuario">
-      <input type="text" id="nuevoUser" placeholder="Usuario" required>
-      <input type="password" id="nuevoPass" placeholder="Contraseña" required>
-      <select id="nuevoRol">
-        <option value="SuperAdmin">SuperAdmin</option>
-        <option value="admin">Admin</option>
-        <option value="tecnico">Técnico</option>
-      </select>
-      <button type="button" onclick="crearUsuario()">Crear</button>
-    </form>
-    <table id="usuariosTable">
-      <thead><tr><th>ID</th><th>Usuario</th><th>Rol</th></tr></thead>
-      <tbody></tbody>
-    </table>
-  </main>
-  <footer>Blue Home Inmobiliaria – Mat. 073-16 | gerencia@bluehomeinmo.co</footer>
-  <script src="js/config.js"></script>
-  <script src="js/usuarios.js"></script>
+  <h2>Gestión de Usuarios</h2>
+  <table border="1">
+    <thead>
+      <tr>
+        <th>Usuario</th>
+        <th>Rol</th>
+      </tr>
+    </thead>
+    <tbody id="tablaUsuarios"></tbody>
+  </table>
 </body>
 </html>

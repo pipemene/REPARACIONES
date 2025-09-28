@@ -3,38 +3,35 @@
 <head>
   <meta charset="UTF-8">
   <title>Órdenes - Blue Home</title>
-  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="styles.css">
+  <script src="config.js"></script>
+  <script src="ordenes.js" defer></script>
 </head>
 <body>
-  <header>
-    <img src="logo-bluehome.png" class="logo" alt="Blue Home Logo">
-    <nav>
-      <a href="panel.html">Inicio</a>
-      <a href="usuarios.html">Usuarios</a>
-      <a href="#" onclick="logout()">Salir</a>
-    </nav>
-  </header>
-  <main>
-    <h2>Órdenes de Servicio</h2>
-    <form id="formOrden">
-      <input type="date" id="fecha" required>
-      <input type="text" id="inquilino" placeholder="Inquilino" required>
-      <input type="text" id="telefono" placeholder="Teléfono" required>
-      <input type="text" id="codigoInmueble" placeholder="Código Inmueble" required>
-      <input type="text" id="descripcion" placeholder="Descripción" required>
-      <button type="button" onclick="crearOrden()">Crear</button>
-    </form>
-    <table id="ordenesTable">
-      <thead>
-        <tr>
-          <th>Radicado</th><th>Fecha</th><th>Inquilino</th><th>Teléfono</th><th>Código Inmueble</th><th>Descripción</th><th>Técnico</th><th>Estado</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </main>
-  <footer>Blue Home Inmobiliaria – Mat. 073-16 | gerencia@bluehomeinmo.co</footer>
-  <script src="js/config.js"></script>
-  <script src="js/ordenes.js"></script>
+  <h2>Órdenes de Servicio</h2>
+  <form id="ordenForm">
+    <input type="date" id="fecha" required />
+    <input type="text" id="inquilino" placeholder="Inquilino" required />
+    <input type="text" id="telefono" placeholder="Teléfono" required />
+    <input type="text" id="codigo" placeholder="Código Inmueble" required />
+    <input type="text" id="descripcion" placeholder="Descripción" required />
+    <button type="submit">Crear</button>
+  </form>
+
+  <table border="1">
+    <thead>
+      <tr>
+        <th>Radicado</th>
+        <th>Fecha</th>
+        <th>Inquilino</th>
+        <th>Teléfono</th>
+        <th>Código</th>
+        <th>Descripción</th>
+        <th>Técnico</th>
+        <th>Estado</th>
+      </tr>
+    </thead>
+    <tbody id="tablaOrdenes"></tbody>
+  </table>
 </body>
 </html>
