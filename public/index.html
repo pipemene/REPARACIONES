@@ -2,15 +2,34 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Panel Principal</title>
+  <title>Panel Principal - Blue Home</title>
   <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 <body>
-  <h1>Panel Principal</h1>
-  <nav>
-    <a href="ordenes.html">Órdenes</a> |
-    <a href="usuarios.html">Usuarios</a> |
-    <a href="login.html" onclick="logout()">Salir</a>
-  </nav>
+  <header>
+    <img src="logo-bluehome.png" class="logo" alt="Blue Home Logo">
+    <nav>
+      <a href="ordenes.html">Órdenes</a>
+      <a href="usuarios.html">Usuarios</a>
+      <a href="#" onclick="logout()">Salir</a>
+    </nav>
+  </header>
+  <main class="dashboard">
+    <div class="card" onclick="window.location='ordenes.html'">
+      <i class="fa-solid fa-file-alt"></i>
+      <h3>Órdenes</h3>
+    </div>
+    <div class="card" onclick="window.location='usuarios.html'">
+      <i class="fa-solid fa-users"></i>
+      <h3>Usuarios</h3>
+    </div>
+    <div class="card" onclick="logout()">
+      <i class="fa-solid fa-sign-out-alt"></i>
+      <h3>Salir</h3>
+    </div>
+  </main>
+  <footer>Blue Home Inmobiliaria – Mat. 073-16 | info@bluehomeinmo.co</footer>
+  <script src="main.js"></script>
 </body>
 </html>

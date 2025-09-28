@@ -2,17 +2,37 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Gestión de Usuarios</title>
+  <title>Usuarios - Blue Home</title>
   <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 <body>
-  <h1>Gestión de Usuarios</h1>
-  <table id="usuariosTable" border="1">
-    <thead>
-      <tr><th>Usuario</th><th>Rol</th></tr>
-    </thead>
-    <tbody></tbody>
-  </table>
+  <header>
+    <img src="logo-bluehome.png" class="logo" alt="Blue Home Logo">
+    <nav>
+      <a href="index.html">Inicio</a>
+      <a href="ordenes.html">Órdenes</a>
+      <a href="#" onclick="logout()">Salir</a>
+    </nav>
+  </header>
+  <main>
+    <h2>Gestión de Usuarios</h2>
+    <form id="formUsuario">
+      <input type="text" id="nuevoUser" placeholder="Usuario" required>
+      <input type="password" id="nuevoPass" placeholder="Contraseña" required>
+      <select id="nuevoRol">
+        <option value="SuperAdmin">SuperAdmin</option>
+        <option value="admin">Admin</option>
+        <option value="tecnico">Técnico</option>
+      </select>
+      <button type="button" onclick="crearUsuario()">Crear</button>
+    </form>
+    <table id="usuariosTable">
+      <thead><tr><th>Usuario</th><th>Rol</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </main>
+  <footer>Blue Home Inmobiliaria – Mat. 073-16 | info@bluehomeinmo.co</footer>
   <script src="main.js"></script>
 </body>
 </html>

@@ -20,6 +20,11 @@ async function login() {
   }
 }
 
+function logout() {
+  localStorage.removeItem("usuario");
+  window.location.href = "login.html";
+}
+
 async function cargarUsuarios() {
   const res = await fetch(API_URL + "?action=getUsuarios");
   const usuarios = await res.json();
@@ -30,6 +35,18 @@ async function cargarUsuarios() {
     tr.innerHTML = `<td>${u.user}</td><td>${u.rol}</td>`;
     tbody.appendChild(tr);
   });
+}
+
+async function crearUsuario() {
+  const nuevoUser = document.getElementById("nuevoUser").value;
+  const nuevoPass = document.getElementById("nuevoPass").value;
+  const nuevoRol = document.getElementById("nuevoRol").value;
+  await fetch(API_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ action: "addUsuario", user: nuevoUser, pass: nuevoPass, rol: nuevoRol })
+  });
+  cargarUsuarios();
 }
 
 async function cargarOrdenes() {
@@ -44,9 +61,17 @@ async function cargarOrdenes() {
   });
 }
 
-function logout() {
-  localStorage.removeItem("usuario");
-  window.location.href = "login.html";
+async function crearOrden() {
+  const radicado = document.getElementById("radicado").value;
+  const fecha = document.getElementById("fecha").value;
+  const inquilino = document.getElementById("inquilino").value;
+  const descripcion = document.getElementById("descripcion").value;
+  await fetch(API_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ action: "addOrden", radicado, fecha, inquilino, descripcion, tecnico: "", estado: "Pendiente" })
+  });
+  cargarOrdenes();
 }
 
 document.addEventListener("DOMContentLoaded", () => {
