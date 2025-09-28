@@ -15,9 +15,26 @@
     </nav>
   </header>
   <main>
-    <h2>Bienvenido al Dashboard</h2>
+    <h2>Dashboard</h2>
+    <section class="resumen">
+      <div class="res-card pendiente">
+        <h1 id="pendientesCount">0</h1>
+        <p>Pendientes</p>
+      </div>
+      <div class="res-card proceso">
+        <h1 id="procesoCount">0</h1>
+        <p>En Proceso</p>
+      </div>
+      <div class="res-card finalizada">
+        <h1 id="finalizadasCount">0</h1>
+        <p>Finalizadas</p>
+      </div>
+    </section>
   </main>
   <footer>Blue Home Inmobiliaria – Mat. 073-16 | info@bluehomeinmo.co</footer>
   <script src="main.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", cargarResumen);
+  </script>
 </body>
 </html>
