@@ -107,3 +107,11 @@ tr:nth-child(even) {
   transform: translateY(-5px);
   box-shadow: 0 4px 12px rgba(0,0,0,0.3);
 }
+.badge {
+  padding: 5px 10px;
+  border-radius: 12px;
+  font-size: 0.9em;
+}
+.badge-pendiente { background: #ffc107; color: #000; }
+.badge-proceso { background: #007bff; color: #fff; }
+.badge-finalizada { background: #28a745; color: #fff; }

@@ -18,14 +18,13 @@
   <main>
     <h2>Órdenes de Servicio</h2>
     <form id="formOrden">
-      <input type="text" id="radicado" placeholder="Radicado" required>
       <input type="date" id="fecha" required>
       <input type="text" id="inquilino" placeholder="Inquilino" required>
       <input type="text" id="descripcion" placeholder="Descripción" required>
       <button type="button" onclick="crearOrden()">Crear</button>
     </form>
     <table id="ordenesTable">
-      <thead><tr><th>Radicado</th><th>Fecha</th><th>Inquilino</th><th>Descripción</th><th>Técnico</th><th>Estado</th></tr></thead>
+      <thead><tr><th>Radicado</th><th>Fecha</th><th>Inquilino</th><th>Descripción</th><th>Técnico</th><th>Estado</th><th>Acciones</th></tr></thead>
       <tbody></tbody>
     </table>
   </main>
