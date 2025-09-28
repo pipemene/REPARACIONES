@@ -34,7 +34,7 @@ async function cargarUsuarios() {
   tbody.innerHTML = "";
   usuarios.forEach(u => {
     const tr = document.createElement("tr");
-    tr.innerHTML = `<td>${u.user}</td><td>${u.rol}</td>`;
+    tr.innerHTML = `<td>${u.id || ""}</td><td>${u.user}</td><td>${u.rol}</td>`;
     tbody.appendChild(tr);
   });
 }
@@ -43,12 +43,18 @@ async function crearUsuario() {
   const nuevoUser = document.getElementById("nuevoUser").value;
   const nuevoPass = document.getElementById("nuevoPass").value;
   const nuevoRol = document.getElementById("nuevoRol").value;
-  await fetch(API_URL, {
+  const res = await fetch(API_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ action: "addUsuario", user: nuevoUser, pass: nuevoPass, rol: nuevoRol })
   });
-  cargarUsuarios();
+  const data = await res.json();
+  if (data.ok) {
+    alert("Usuario creado con ID: " + data.id);
+    cargarUsuarios();
+  } else {
+    alert("Error al crear usuario");
+  }
 }
 
 async function cargarOrdenes() {
@@ -58,7 +64,6 @@ async function cargarOrdenes() {
   const tbody = document.querySelector("#ordenesTable tbody");
   tbody.innerHTML = "";
   ordenes.forEach(o => {
-    // Filtrar según rol
     if (user.rol === "tecnico" && !(o.tecnico === "" || o.tecnico === user.user)) return;
     let estadoBadge = "";
     if (o.estado === "Pendiente") estadoBadge = '<span class="badge badge-pendiente">Pendiente</span>';
@@ -75,7 +80,7 @@ async function cargarOrdenes() {
       }
     }
     const tr = document.createElement("tr");
-    tr.innerHTML = `<td>${o.radicado}</td><td>${o.fecha}</td><td>${o.inquilino}</td><td>${o.descripcion}</td><td>${o.tecnico}</td><td>${estadoBadge}</td><td>${acciones}</td>`;
+    tr.innerHTML = `<td>${o.radicado}</td><td>${o.fecha}</td><td>${o.inquilino}</td><td>${o.telefono}</td><td>${o.codigoInmueble}</td><td>${o.descripcion}</td><td>${o.tecnico}</td><td>${estadoBadge}</td><td>${acciones}</td>`;
     tbody.appendChild(tr);
   });
 }
@@ -83,15 +88,21 @@ async function cargarOrdenes() {
 async function crearOrden() {
   const fecha = document.getElementById("fecha").value;
   const inquilino = document.getElementById("inquilino").value;
+  const telefono = document.getElementById("telefono").value;
+  const codigoInmueble = document.getElementById("codigoInmueble").value;
   const descripcion = document.getElementById("descripcion").value;
   const res = await fetch(API_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ action: "addOrden", fecha, inquilino, descripcion, tecnico: "", estado: "Pendiente" })
+    body: JSON.stringify({ action: "addOrden", fecha, inquilino, telefono, codigoInmueble, descripcion, tecnico: "", estado: "Pendiente" })
   });
   const data = await res.json();
-  alert("Orden creada con radicado: " + data.radicado);
-  cargarOrdenes();
+  if (data.ok) {
+    alert("Orden creada con radicado: " + data.radicado);
+    cargarOrdenes();
+  } else {
+    alert("Error al crear orden");
+  }
 }
 
 async function tomarOrden(radicado) {
