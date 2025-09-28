@@ -2,57 +2,17 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Gestión de Usuarios</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <header>
-    <h1>Gestión de Usuarios</h1>
-    <nav>
-      <a href="index.html">Inicio</a>
-      <a href="ordenes.html">Órdenes de Servicio</a>
-      <a href="usuarios.html">Gestión de Usuarios</a>
-      <a href="#" onclick="logout()">Salir</a>
-    </nav>
-  </header>
-
-  <main class="container">
-    <h2>Crear Usuario</h2>
-    <form id="usuarioForm">
-      <input type="text" id="nuevoUser" placeholder="Usuario" required>
-      <input type="password" id="nuevoPass" placeholder="Contraseña" required>
-      <select id="nuevoRol">
-        <option value="SuperAdmin">SuperAdmin</option>
-        <option value="Admin">Admin</option>
-        <option value="Tecnico">Tecnico</option>
-      </select>
-      <button type="submit">Crear</button>
-    </form>
-
-    <h2>Usuarios Registrados</h2>
-    <table id="tablaUsuarios" border="1" style="width:100%;border-collapse:collapse;">
-      <thead>
-        <tr>
-          <th>Usuario</th>
-          <th>Rol</th>
-          <th>Contraseña</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </main>
-
-  <script>
-    if (localStorage.getItem("logueado") !== "true") {
-      window.location.href = "/login.html";
-    }
-    if (localStorage.getItem("rol") !== "SuperAdmin") {
-      alert("Acceso denegado");
-      window.location.href = "index.html";
-    }
-  </script>
+  <h1>Gestión de Usuarios</h1>
+  <table id="usuariosTable" border="1">
+    <thead>
+      <tr><th>Usuario</th><th>Rol</th></tr>
+    </thead>
+    <tbody></tbody>
+  </table>
   <script src="main.js"></script>
 </body>
 </html>

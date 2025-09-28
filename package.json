@@ -1,13 +1,11 @@
 {
-  "name": "bluehome-os",
-  "version": "1.5.0",
-  "main": "index.js",
+  "name": "gestor-procesos",
+  "version": "1.0.0",
+  "main": "server.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "node server.js"
   },
   "dependencies": {
-    "express": "^4.18.2",
-    "cors": "^2.8.5",
-    "node-fetch": "^2.6.7"
+    "express": "^4.18.2"
   }
 }
