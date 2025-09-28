@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <title>Panel Principal - Blue Home</title>
   <link rel="stylesheet" href="styles.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 <body>
   <header>
@@ -16,6 +15,7 @@
     </nav>
   </header>
   <main>
+    <h2>Bienvenido al Dashboard</h2>
     <section class="resumen">
       <div class="res-card pendiente" onclick="window.location='ordenes.html?estado=Pendiente'">
         <h1 id="pendientesCount">0</h1>
@@ -30,23 +30,9 @@
         <p>Finalizadas</p>
       </div>
     </section>
-
-    <section class="dashboard">
-      <div class="card" onclick="window.location='ordenes.html'">
-        <i class="fa-solid fa-file-alt"></i>
-        <h3>Órdenes</h3>
-      </div>
-      <div class="card" onclick="window.location='usuarios.html'">
-        <i class="fa-solid fa-users"></i>
-        <h3>Usuarios</h3>
-      </div>
-      <div class="card" onclick="logout()">
-        <i class="fa-solid fa-sign-out-alt"></i>
-        <h3>Salir</h3>
-      </div>
-    </section>
   </main>
   <footer>Blue Home Inmobiliaria – Mat. 073-16 | info@bluehomeinmo.co</footer>
   <script src="main.js"></script>
+  <script>document.addEventListener("DOMContentLoaded", validarSesion);</script>
 </body>
 </html>
