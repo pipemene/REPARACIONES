@@ -1,21 +1,26 @@
 document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("ordenForm");
   const tabla = document.getElementById("tablaOrdenes");
+  const buscador = document.getElementById("buscador");
+  let ordenesGlobal = [];
 
+  // Cargar órdenes al iniciar
   fetch(`${CONFIG.API_URL}?action=getOrdenes`)
     .then(res => res.json())
     .then(data => {
+      ordenesGlobal = data;
       renderOrdenes(data);
     })
     .catch(err => console.error("Error al cargar órdenes:", err));
 
+  // Crear orden
   form.addEventListener("submit", (e) => {
     e.preventDefault();
-    const fecha = document.getElementById("fecha").value;
     const inquilino = document.getElementById("inquilino").value;
     const telefono = document.getElementById("telefono").value;
     const codigo = document.getElementById("codigo").value;
     const descripcion = document.getElementById("descripcion").value;
+    const fecha = new Date().toLocaleDateString("es-CO");
 
     fetch(CONFIG.API_URL, {
       method: "POST",
@@ -39,6 +44,16 @@ document.addEventListener("DOMContentLoaded", () => {
         alert("Error al crear la orden.");
         console.error(err);
       });
+  });
+
+  // Filtro dinámico
+  buscador.addEventListener("input", () => {
+    const texto = buscador.value.toLowerCase();
+    const filtradas = ordenesGlobal.filter(o =>
+      o.inquilino.toLowerCase().includes(texto) ||
+      o.codigo.toLowerCase().includes(texto)
+    );
+    renderOrdenes(filtradas);
   });
 
   function renderOrdenes(lista) {

@@ -8,30 +8,43 @@
   <script src="ordenes.js" defer></script>
 </head>
 <body>
-  <h2>Órdenes de Servicio</h2>
-  <form id="ordenForm">
-    <input type="date" id="fecha" required />
-    <input type="text" id="inquilino" placeholder="Inquilino" required />
-    <input type="text" id="telefono" placeholder="Teléfono" required />
-    <input type="text" id="codigo" placeholder="Código Inmueble" required />
-    <input type="text" id="descripcion" placeholder="Descripción" required />
-    <button type="submit">Crear</button>
-  </form>
+  <header>
+    <h1>Órdenes de Servicio</h1>
+    <nav>
+      <a href="main.html">Inicio</a>
+      <a href="ordenes.html">Órdenes</a>
+      <a href="usuarios.html">Usuarios</a>
+      <a href="index.html" onclick="sessionStorage.clear()">Salir</a>
+    </nav>
+  </header>
+  <main>
+    <h2>Crear Orden</h2>
+    <form id="ordenForm">
+      <input type="text" id="inquilino" placeholder="Inquilino" required>
+      <input type="text" id="telefono" placeholder="Teléfono" required>
+      <input type="text" id="codigo" placeholder="Código Inmueble" required>
+      <input type="text" id="descripcion" placeholder="Descripción" required>
+      <button type="submit">Crear</button>
+    </form>
 
-  <table border="1">
-    <thead>
-      <tr>
-        <th>Radicado</th>
-        <th>Fecha</th>
-        <th>Inquilino</th>
-        <th>Teléfono</th>
-        <th>Código</th>
-        <th>Descripción</th>
-        <th>Técnico</th>
-        <th>Estado</th>
-      </tr>
-    </thead>
-    <tbody id="tablaOrdenes"></tbody>
-  </table>
+    <h2>Listado de Órdenes</h2>
+    <input type="text" id="buscador" placeholder="Buscar por inquilino o código">
+    <table>
+      <thead>
+        <tr>
+          <th>Radicado</th>
+          <th>Fecha</th>
+          <th>Inquilino</th>
+          <th>Teléfono</th>
+          <th>Código</th>
+          <th>Descripción</th>
+          <th>Técnico</th>
+          <th>Estado</th>
+        </tr>
+      </thead>
+      <tbody id="tablaOrdenes"></tbody>
+    </table>
+  </main>
+  <footer>Blue Home Inmobiliaria – Matrícula 073-16 | gerencia@bluehomeinmo.co</footer>
 </body>
 </html>

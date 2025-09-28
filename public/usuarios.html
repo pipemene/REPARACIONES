@@ -8,15 +8,26 @@
   <script src="usuarios.js" defer></script>
 </head>
 <body>
-  <h2>Gestión de Usuarios</h2>
-  <table border="1">
-    <thead>
-      <tr>
-        <th>Usuario</th>
-        <th>Rol</th>
-      </tr>
-    </thead>
-    <tbody id="tablaUsuarios"></tbody>
-  </table>
+  <header>
+    <h1>Usuarios</h1>
+    <nav>
+      <a href="main.html">Inicio</a>
+      <a href="ordenes.html">Órdenes</a>
+      <a href="usuarios.html">Usuarios</a>
+      <a href="index.html" onclick="sessionStorage.clear()">Salir</a>
+    </nav>
+  </header>
+  <main>
+    <table>
+      <thead>
+        <tr>
+          <th>Usuario</th>
+          <th>Rol</th>
+        </tr>
+      </thead>
+      <tbody id="tablaUsuarios"></tbody>
+    </table>
+  </main>
+  <footer>Blue Home Inmobiliaria – Matrícula 073-16 | gerencia@bluehomeinmo.co</footer>
 </body>
 </html>
