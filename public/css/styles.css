@@ -13,12 +13,12 @@ th, td {
 }
 button {
   cursor: pointer;
-  background: #2563eb;
+  background: #3b82f6;
   color: white;
   border: none;
   border-radius: 4px;
   padding: 4px 8px;
 }
 button:hover {
-  background: #1d4ed8;
+  background: #2563eb;
 }

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard - Blue Home</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <header>
+    <img src="logo-bluehome.png" class="logo" alt="Blue Home Logo">
+    <nav>
+      <a href="ordenes.html">Órdenes</a>
+      <a href="usuarios.html">Usuarios</a>
+      <a href="#" onclick="logout()">Salir</a>
+    </nav>
+  </header>
+  <main>
+    <h2>Dashboard</h2>
+    <section class="resumen">
+      <div class="res-card pendiente">
+        <h1 id="pendientesCount">0</h1>
+        <p>Pendientes</p>
+      </div>
+      <div class="res-card proceso">
+        <h1 id="procesoCount">0</h1>
+        <p>En Proceso</p>
+      </div>
+      <div class="res-card finalizada">
+        <h1 id="finalizadasCount">0</h1>
+        <p>Finalizadas</p>
+      </div>
+    </section>
+    <section class="grafico">
+      <canvas id="graficoOrdenes"></canvas>
+    </section>
+  </main>
+  <footer>Blue Home Inmobiliaria – Mat. 073-16 | gerencia@bluehomeinmo.co</footer>
+  <script src="js/config.js"></script>
+  <script src="js/panel.js"></script>
+</body>
+</html>
