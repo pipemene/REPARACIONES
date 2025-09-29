@@ -1,50 +1,21 @@
-function doGet(e) {
-  const action = e.parameter.action;
-
-  if (action === "getOrdenes") {
-    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("ordenes");
-    const data = sheet.getDataRange().getValues();
-    const headers = data.shift();
-    const ordenes = data.map(r => ({
-      id: r[0],
-      fecha: r[1],
-      cliente: r[2],
-      descripcion: r[3],
-      tecnicoId: r[4],
-      estado: r[5]
-    }));
-    return ContentService.createTextOutput(JSON.stringify(ordenes)).setMimeType(ContentService.MimeType.JSON);
-  }
-
-  if (action === "getTecnicos") {
-    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("tecnicos");
-    const data = sheet.getDataRange().getValues();
-    const headers = data.shift();
-    const tecnicos = data.map(r => ({
-      id: r[0],
-      nombre: r[1]
-    }));
-    return ContentService.createTextOutput(JSON.stringify(tecnicos)).setMimeType(ContentService.MimeType.JSON);
-  }
-}
-
+// Extensión para manejar finalizarOrden
 function doPost(e) {
   const action = e.parameter.action;
   const body = JSON.parse(e.postData.contents);
 
-  if (action === "updateOrden") {
-    const { id, tecnicoId, estado } = body;
+  if (action === "finalizarOrden") {
+    const { id, observaciones, fotos, firma } = body;
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("ordenes");
     const data = sheet.getDataRange().getValues();
-
-    for (let i = 1; i < data.length; i++) {
-      if (data[i][0] == id) {
-        sheet.getRange(i + 1, 5).setValue(tecnicoId);
-        sheet.getRange(i + 1, 6).setValue(estado);
+    for (let i=1;i<data.length;i++){
+      if (data[i][0] == id){
+        sheet.getRange(i+1,8).setValue("Finalizada"); // Estado
+        sheet.getRange(i+1,9).setValue(observaciones);
+        sheet.getRange(i+1,10).setValue(fotos.join(","));
+        sheet.getRange(i+1,11).setValue(firma);
         break;
       }
     }
-
-    return ContentService.createTextOutput(JSON.stringify({ success: true })).setMimeType(ContentService.MimeType.JSON);
+    return ContentService.createTextOutput(JSON.stringify({success:true}));
   }
 }
