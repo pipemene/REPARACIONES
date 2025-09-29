@@ -1,8 +1,0 @@
-[
-  { "username": "PIPEMENE", "password": "Blu3h0m32016#", "role": "superadmin" },
-  { "username": "ARRENDAMIENTOS", "password": "Bluehome2016", "role": "admin" },
-  { "username": "DAYAN", "password": "Bluehome2016", "role": "tecnico" },
-  { "username": "MAURICIO", "password": "Bluehome2016", "role": "tecnico" },
-  { "username": "JAIR", "password": "Bluehome2016", "role": "tecnico" },
-  { "username": "JUANDAVID", "password": "Bluehome2016", "role": "tecnico" }
-]

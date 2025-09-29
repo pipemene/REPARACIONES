@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Detalle Orden <%= orden.id %></title>
+  <link rel="stylesheet" href="/css/styles.css">
+  <style>
+    .signature-pad { border: 1px solid #ccc; width: 300px; height: 150px; }
+    .preview-img { max-width: 120px; margin: 5px; }
+  </style>
+</head>
+<body>
+  <h2>Orden <%= orden.id %></h2>
+  <p><b>Fecha:</b> <%= orden.fecha %></p>
+  <p><b>Inquilino:</b> <%= orden.cliente %></p>
+  <p><b>Teléfono:</b> <%= orden.telefono %></p>
+  <p><b>Código:</b> <%= orden.codigo %></p>
+  <p><b>Descripción:</b> <%= orden.descripcion %></p>
+
+  <h3>Retroalimentación</h3>
+
+  <form id="finalizarForm" enctype="multipart/form-data" method="POST" action="/ordenes/<%= orden.id %>/finalizar">
+    <label>Fotos:</label>
+    <input type="file" name="fotos" multiple accept="image/*" onchange="previewImages(event)"><br>
+    <div id="preview"></div>
+
+    <label>Firma del inquilino:</label><br>
+    <canvas id="signature-pad" class="signature-pad"></canvas><br>
+    <button type="button" onclick="limpiarFirma()">Limpiar firma</button><br>
+
+    <label>Observaciones:</label><br>
+    <textarea name="observaciones" rows="4" cols="50"></textarea><br>
+
+    <input type="hidden" id="firma" name="firma">
+    <button type="submit">Finalizar Orden</button>
+  </form>
+
+  <script>
+    // Firma digital
+    const canvas = document.getElementById("signature-pad");
+    const ctx = canvas.getContext("2d");
+    let drawing = false;
+    canvas.addEventListener("mousedown", () => drawing = true);
+    canvas.addEventListener("mouseup", () => drawing = false);
+    canvas.addEventListener("mousemove", e => {
+      if (!drawing) return;
+      ctx.fillStyle = "black";
+      ctx.beginPath();
+      ctx.arc(e.offsetX, e.offsetY, 2, 0, Math.PI * 2);
+      ctx.fill();
+    });
+    function limpiarFirma(){ ctx.clearRect(0,0,canvas.width,canvas.height); }
+    document.getElementById("finalizarForm").addEventListener("submit", e => {
+      document.getElementById("firma").value = canvas.toDataURL();
+    });
+
+    // Preview imágenes
+    function previewImages(event) {
+      const files = event.target.files;
+      const preview = document.getElementById("preview");
+      preview.innerHTML = "";
+      for (let i = 0; i < files.length; i++) {
+        const img = document.createElement("img");
+        img.src = URL.createObjectURL(files[i]);
+        img.className = "preview-img";
+        preview.appendChild(img);
+      }
+    }
+  </script>
+</body>
+</html>
