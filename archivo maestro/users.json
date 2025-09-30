@@ -1,0 +1,22 @@
+[
+  {
+    "username": "PIPEMENE",
+    "password": "Blu3h0m32016#",
+    "role": "superadmin"
+  },
+  {
+    "username": "ARRENDAMIENTOS",
+    "password": "Arr3nd2025#",
+    "role": "admin"
+  },
+  {
+    "username": "TECNICO1",
+    "password": "Tecnic0#1",
+    "role": "tecnico"
+  },
+  {
+    "username": "TECNICO2",
+    "password": "Tecnic0#2",
+    "role": "tecnico"
+  }
+]
