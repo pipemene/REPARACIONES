@@ -1,17 +1,22 @@
-require("dotenv").config();
-const express = require("express");
-const path = require("path");
-const bodyParser = require("body-parser");
-const ordenesRoutes = require("./routes/ordenes");
-
+const express = require('express');
 const app = express();
+const bodyParser = require('body-parser');
+const path = require('path');
 
-app.set("view engine", "ejs");
-app.set("views", path.join(__dirname, "views"));
-app.use(express.static(path.join(__dirname, "public")));
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
+app.use(express.static(path.join(__dirname, 'public')));
 
-app.use("/ordenes", ordenesRoutes);
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
+
+// Rutas
+const ordenesRouter = require('./routes/ordenes');
+app.use('/ordenes', ordenesRouter);
+
+app.get('/', (req, res) => {
+  res.redirect('/ordenes');
+});
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Servidor corriendo en puerto ${PORT}`));
