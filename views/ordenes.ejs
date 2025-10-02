@@ -1,28 +1,47 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-  <title>Órdenes de Servicio</title>
+  <meta charset="UTF-8">
+  <title>Órdenes - BlueHome OS</title>
+  <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
-  <h1>Listado de Órdenes</h1>
-  <table border="1">
-    <tr>
-      <th>Radicado</th><th>Fecha</th><th>Inquilino</th><th>Teléfono</th>
-      <th>Código</th><th>Descripción</th><th>Técnico</th><th>Estado</th><th>Acciones</th>
-    </tr>
-    <% ordenes.forEach(o => { %>
+  <h1>Órdenes de Servicio</h1>
+  <table border="1" cellspacing="0" cellpadding="5">
+    <thead>
       <tr>
-        <td><%= o.radicado %></td>
-        <td><%= o.fecha %></td>
-        <td><%= o.inquilino %></td>
-        <td><%= o.telefono %></td>
-        <td><%= o.codigo %></td>
-        <td><%= o.descripcion %></td>
-        <td><%= o.tecnico %></td>
-        <td><%= o.estado %></td>
-        <td><a href="/ordenes/<%= o.radicado %>">Ver</a></td>
+        <th>Radicado</th>
+        <th>Fecha</th>
+        <th>Inquilino</th>
+        <th>Teléfono</th>
+        <th>Código</th>
+        <th>Descripción</th>
+        <th>Técnico</th>
+        <th>Estado</th>
+        <th>Acciones</th>
       </tr>
-    <% }) %>
+    </thead>
+    <tbody>
+      <% if (ordenes && ordenes.length > 0) { %>
+        <% ordenes.forEach(o => { %>
+          <tr>
+            <td><%= o.Radicado %></td>
+            <td><%= o.Fecha %></td>
+            <td><%= o.Inquilino %></td>
+            <td><%= o.Telefono %></td>
+            <td><%= o.Código %></td>
+            <td><%= o.Descripcion %></td>
+            <td><%= o.Tecnico || "Sin asignar" %></td>
+            <td><%= o.Estado || "Pendiente" %></td>
+            <td><a href="/ordenes/<%= o.Radicado %>">Ver</a></td>
+          </tr>
+        <% }) %>
+      <% } else { %>
+        <tr><td colspan="9">No hay órdenes registradas</td></tr>
+      <% } %>
+    </tbody>
   </table>
+  <br>
+  <a href="/logout">Cerrar sesión</a>
 </body>
 </html>

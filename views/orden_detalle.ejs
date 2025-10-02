@@ -1,88 +1,61 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-  <title>Detalle Orden</title>
+  <meta charset="UTF-8">
+  <title>Detalle Orden <%= orden.Radicado %> - BlueHome OS</title>
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
-  <h1>Detalle de Orden <%= orden.radicado %></h1>
-  <p><b>Inquilino:</b> <%= orden.inquilino %></p>
-  <p><b>Descripción:</b> <%= orden.descripcion %></p>
-
+  <h1>Detalle de Orden <%= orden.Radicado %></h1>
+  <p><b>Inquilino:</b> <%= orden.Inquilino %></p>
+  <p><b>Teléfono:</b> <%= orden.Telefono %></p>
+  <p><b>Código:</b> <%= orden.Código %></p>
+  <p><b>Descripción:</b> <%= orden.Descripcion %></p>
+  <p><b>Estado:</b> <%= orden.Estado || "Pendiente" %></p>
+  <hr>
   <form id="finalizarForm">
     <label>Observaciones:</label><br>
-    <textarea name="observaciones"></textarea><br><br>
-
+    <textarea name="observaciones" rows="4" cols="50"></textarea><br><br>
     <label>Fotos:</label><br>
     <input type="file" id="fotos" multiple><br><br>
-
-    <label>Firma:</label><br>
+    <label>Firma del inquilino:</label><br>
     <canvas id="firmaCanvas" width="300" height="150" style="border:1px solid black;"></canvas><br>
-    <button type="button" onclick="limpiarFirma()">Limpiar</button><br><br>
-
+    <button type="button" onclick="limpiarFirma()">Limpiar firma</button><br><br>
     <button type="submit">Finalizar Orden</button>
   </form>
-
+  <br>
+  <a href="/ordenes">⬅ Volver a listado</a>
   <script>
     const form = document.getElementById('finalizarForm');
     const canvas = document.getElementById('firmaCanvas');
     const ctx = canvas.getContext('2d');
     let drawing = false;
-
     canvas.addEventListener('mousedown', () => drawing = true);
-    canvas.addEventListener('mouseup', () => drawing = false);
+    canvas.addEventListener('mouseup', () => { drawing = false; ctx.beginPath(); });
     canvas.addEventListener('mousemove', dibujar);
-
     function dibujar(event) {
       if (!drawing) return;
-      ctx.lineWidth = 2;
-      ctx.lineCap = 'round';
-      ctx.strokeStyle = '#000';
-      ctx.lineTo(event.offsetX, event.offsetY);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(event.offsetX, event.offsetY);
+      ctx.lineWidth = 2; ctx.lineCap = 'round'; ctx.strokeStyle = '#000';
+      ctx.lineTo(event.offsetX, event.offsetY); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(event.offsetX, event.offsetY);
     }
-
-    function limpiarFirma() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-    }
-
+    function limpiarFirma() { ctx.clearRect(0, 0, canvas.width, canvas.height); }
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
-
-      const fotosInput = document.getElementById('fotos');
-      const fotos = [];
-      for (let file of fotosInput.files) {
-        const base64 = await toBase64(file);
-        fotos.push(base64);
-      }
-
+      const fotosInput = document.getElementById('fotos'); const fotos = [];
+      for (let file of fotosInput.files) { const base64 = await toBase64(file); fotos.push(base64); }
       const firma = canvas.toDataURL();
-
-      const res = await fetch(`/ordenes/<%= orden.radicado %>/finalizar`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          observaciones: form.observaciones.value,
-          fotos,
-          firma
-        })
+      const res = await fetch(`/ordenes/<%= orden.Radicado %>/finalizar`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ observaciones: form.observaciones.value, fotos, firma })
       });
-
-      const data = await res.json();
-      alert('Orden finalizada: ' + JSON.stringify(data));
+      const data = await res.json(); alert('Orden finalizada: ' + JSON.stringify(data));
       window.location.href = '/ordenes';
     });
-
-    function toBase64(file) {
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = () => resolve(reader.result);
-        reader.onerror = error => reject(error);
-      });
-    }
+    function toBase64(file) { return new Promise((resolve, reject) => {
+      const reader = new FileReader(); reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result); reader.onerror = error => reject(error);
+    }); }
   </script>
 </body>
 </html>
