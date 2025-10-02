@@ -1,47 +1,30 @@
 <!DOCTYPE html>
-<html lang="es">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <title>Órdenes - BlueHome OS</title>
-  <link rel="stylesheet" href="/styles.css">
+  <title>Órdenes de Servicio</title>
+  <link rel="stylesheet" href="/css/styles.css">
 </head>
 <body>
-  <h1>Órdenes de Servicio</h1>
-  <table border="1" cellspacing="0" cellpadding="5">
+  <h2>Órdenes de Servicio</h2>
+  <p>Bienvenido <%= user.Usuario %> (Rol: <%= user.Rol %>)</p>
+  <a href="/logout">Salir</a>
+  <table>
     <thead>
       <tr>
-        <th>Radicado</th>
-        <th>Fecha</th>
-        <th>Inquilino</th>
-        <th>Teléfono</th>
-        <th>Código</th>
-        <th>Descripción</th>
-        <th>Técnico</th>
-        <th>Estado</th>
-        <th>Acciones</th>
+        <% if (ordenes.length > 0) { Object.keys(ordenes[0]).forEach(k => { %>
+          <th><%= k %></th>
+        <% }) } %>
       </tr>
     </thead>
     <tbody>
-      <% if (ordenes && ordenes.length > 0) { %>
-        <% ordenes.forEach(o => { %>
-          <tr>
-            <td><%= o.Radicado %></td>
-            <td><%= o.Fecha %></td>
-            <td><%= o.Inquilino %></td>
-            <td><%= o.Telefono %></td>
-            <td><%= o.Código %></td>
-            <td><%= o.Descripcion %></td>
-            <td><%= o.Tecnico || "Sin asignar" %></td>
-            <td><%= o.Estado || "Pendiente" %></td>
-            <td><a href="/ordenes/<%= o.Radicado %>">Ver</a></td>
-          </tr>
-        <% }) %>
-      <% } else { %>
-        <tr><td colspan="9">No hay órdenes registradas</td></tr>
-      <% } %>
+      <% ordenes.forEach(o => { %>
+        <tr>
+          <% Object.values(o).forEach(v => { %>
+            <td><%= v %></td>
+          <% }) %>
+        </tr>
+      <% }) %>
     </tbody>
   </table>
-  <br>
-  <a href="/logout">Cerrar sesión</a>
 </body>
 </html>
